@@ -22,7 +22,7 @@ export const StudentCard = ({
     }
   };
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all p-3.5 sm:p-4 flex flex-col justify-between">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all p-3.5 sm:p-4 flex flex-col justify-between h-full">
       <div>
         {/* Card Header */}
         <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-slate-100">

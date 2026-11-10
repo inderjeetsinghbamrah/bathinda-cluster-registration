@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Users2,
   Lightbulb,
@@ -9,7 +9,9 @@ import {
   PlusCircle,
   FolderKanban,
   Sparkles,
-  GraduationCap
+  GraduationCap,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { PROJECT_THEMES } from '../lib/constants';
 import { StudentCard } from './StudentCard';
@@ -30,6 +32,51 @@ export const TeamSection = ({
   const teamLabel = `Team ${teamIndex + 1}`;
   const accentBorder = isTeam1 ? 'border-blue-300' : 'border-indigo-300';
   const badgeColor = isTeam1 ? 'bg-blue-600 text-white' : 'bg-indigo-600 text-white';
+
+  const scrollContainerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollButtons = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
+  };
+
+  useEffect(() => {
+    checkScrollButtons();
+    const el = scrollContainerRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScrollButtons, { passive: true });
+      window.addEventListener('resize', checkScrollButtons);
+      return () => {
+        el.removeEventListener('scroll', checkScrollButtons);
+        window.removeEventListener('resize', checkScrollButtons);
+      };
+    }
+  }, [team.students.length]);
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -320, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+    }
+  };
+
+  const scrollToStudent = (index) => {
+    if (scrollContainerRef.current) {
+      const cards = scrollContainerRef.current.children;
+      if (cards[index]) {
+        cards[index].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+      }
+    }
+  };
 
   return (
     <div
@@ -287,24 +334,113 @@ export const TeamSection = ({
             </div>
           </div>
 
-          <p className="text-xs text-slate-500 mb-3.5">
-            Student 1 is the designated Team Leader. Fill details for all enrolled members.
-          </p>
+          {/* Subtitle & Desktop Scroll Navigation Toolbar */}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <p className="text-xs text-slate-500">
+              Student 1 is the Team Leader. Fill details for all enrolled members.
+            </p>
 
-          {/* MULTI-COLUMN STUDENT CARDS GRID: Fills the entire screen width! */}
-          <div className={`grid grid-cols-1 ${isDualColumn ? 'sm:grid-cols-2 xl:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4'} gap-3.5`}>
-            {team.students.map((student, sIdx) => (
-              <StudentCard
-                key={student.id || sIdx}
-                student={student}
-                index={sIdx}
-                teamIndex={teamIndex}
-                canRemove={team.students.length > 1}
-                onStudentChange={onStudentChange}
-                onRemoveStudent={onRemoveStudent}
-                errors={errors}
-              />
-            ))}
+            {/* Desktop-only scroll navigation buttons */}
+            <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
+              <button
+                type="button"
+                onClick={scrollLeft}
+                disabled={!canScrollLeft}
+                className={`p-1.5 rounded-lg border transition ${
+                  canScrollLeft
+                    ? 'border-slate-300 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95 shadow-2xs'
+                    : 'border-slate-200 text-slate-300 cursor-not-allowed opacity-40'
+                }`}
+                title="Scroll Left (Previous Student)"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={scrollRight}
+                disabled={!canScrollRight}
+                className={`p-1.5 rounded-lg border transition ${
+                  canScrollRight
+                    ? 'border-slate-300 text-slate-700 hover:bg-slate-100 cursor-pointer active:scale-95 shadow-2xs'
+                    : 'border-slate-200 text-slate-300 cursor-not-allowed opacity-40'
+                }`}
+                title="Scroll Right (Next Student)"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Quick jump pills for desktop */}
+          {team.students.length > 2 && (
+            <div className="hidden sm:flex items-center gap-1.5 mb-3 overflow-x-auto pb-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1 flex-shrink-0">
+                Jump To:
+              </span>
+              {team.students.map((_, sIdx) => (
+                <button
+                  key={sIdx}
+                  type="button"
+                  onClick={() => scrollToStudent(sIdx)}
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-800 border border-slate-200 transition cursor-pointer flex-shrink-0 active:scale-95"
+                >
+                  Student #{sIdx + 1} {sIdx === 0 ? '👑' : ''}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Student Cards Container:
+              - Mobile (< sm): Natural vertical stacked cards (grid-cols-1)
+              - Desktop (sm+): Single-row smooth horizontal scroll carousel */}
+          <div className="relative">
+            <div
+              ref={scrollContainerRef}
+              className="grid grid-cols-1 gap-3.5 sm:flex sm:flex-nowrap sm:overflow-x-auto sm:scroll-smooth sm:snap-x sm:snap-mandatory sm:pb-3 sm:pt-1 horizontal-scroll-container"
+            >
+              {team.students.map((student, sIdx) => (
+                <div
+                  key={student.id || sIdx}
+                  className="w-full sm:w-[285px] lg:w-[310px] sm:flex-shrink-0 sm:snap-start"
+                >
+                  <StudentCard
+                    student={student}
+                    index={sIdx}
+                    teamIndex={teamIndex}
+                    canRemove={team.students.length > 1}
+                    onStudentChange={onStudentChange}
+                    onRemoveStudent={onRemoveStudent}
+                    errors={errors}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop right edge hint when more cards overflow to the right */}
+            {canScrollRight && (
+              <div
+                onClick={scrollRight}
+                className="hidden sm:flex absolute right-0 top-0 bottom-3 w-12 bg-gradient-to-l from-white/95 via-white/60 to-transparent items-center justify-end pr-1 cursor-pointer pointer-events-auto"
+                title="Click or scroll right to view more students"
+              >
+                <div className="w-7 h-7 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center justify-center transition active:scale-90">
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </div>
+            )}
+
+            {/* Desktop left edge hint when scrolled */}
+            {canScrollLeft && (
+              <div
+                onClick={scrollLeft}
+                className="hidden sm:flex absolute left-0 top-0 bottom-3 w-12 bg-gradient-to-r from-white/95 via-white/60 to-transparent items-center justify-start pl-1 cursor-pointer pointer-events-auto"
+                title="Click or scroll left"
+              >
+                <div className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-900 text-white shadow-md flex items-center justify-center transition active:scale-90">
+                  <ChevronLeft className="w-4 h-4" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
