@@ -265,9 +265,22 @@ export const AdminPortal = () => {
 
     submissions.forEach((sub) => {
       const teams = sub.competition_teams || [];
+      const rawTeams = sub.raw_payload?.teams || [];
+
       teams.forEach((t) => {
+        const rawTeam = rawTeams.find((rt) => rt.teamNumber === t.team_number) || rawTeams[t.team_number ? t.team_number - 1 : 0];
+        const rawStudents = rawTeam?.students || [];
+
         const students = t.competition_students || [];
-        students.forEach((s) => {
+        students.forEach((s, sIdx) => {
+          const rawStudent = rawStudents.find(
+            (rs) => (rs.registrationNo && rs.registrationNo === s.registration_no) ||
+                    (rs.name && rs.name.trim().toLowerCase() === s.student_name?.trim().toLowerCase())
+          ) || rawStudents[s.student_order ? s.student_order - 1 : sIdx];
+
+          const semVal = s.semester || rawStudent?.semester || '-';
+          const emailVal = s.email || rawStudent?.email || '-';
+
           records.push({
             submissionId: sub.id,
             code: sub.submission_code,
@@ -288,8 +301,8 @@ export const AdminPortal = () => {
             studentRole: s.student_order === 1 ? 'Leader' : 'Member',
             registrationNo: s.registration_no,
             department: s.department === 'Others' ? `${s.department} (${s.department_other || ''})` : s.department,
-            semester: s.semester || '-',
-            studentEmail: s.email || '-',
+            semester: semVal,
+            studentEmail: emailVal,
             studentContact: s.contact_number
           });
         });
@@ -870,19 +883,30 @@ export const AdminPortal = () => {
                           <div className="space-y-1">
                             <span className="text-[10px] uppercase font-bold text-slate-400 block">Enrolled Students:</span>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                              {(t.competition_students || []).map((st, sIdx) => (
-                                <div key={st.id || sIdx} className="bg-white p-2 rounded-lg border border-slate-200 text-[11px]">
-                                  <span className="font-bold text-slate-900 block truncate">
-                                    {sIdx + 1}. {st.student_name} {st.student_order === 1 ? '(Leader)' : ''}
-                                  </span>
-                                  <span className="text-slate-500 text-[10px] block">
-                                    {st.registration_no} &bull; {st.department} {st.semester ? `• ${st.semester}` : ''}
-                                  </span>
-                                  <span className="font-mono text-slate-500 text-[10px] block">
-                                    {st.contact_number} {st.email ? `• ${st.email}` : ''}
-                                  </span>
-                                </div>
-                              ))}
+                              {(t.competition_students || []).map((st, sIdx) => {
+                                const rawTeam = sub.raw_payload?.teams?.find((rt) => rt.teamNumber === t.team_number) || sub.raw_payload?.teams?.[t.team_number ? t.team_number - 1 : 0];
+                                const rawSt = rawTeam?.students?.find(
+                                  (rs) => (rs.registrationNo && rs.registrationNo === st.registration_no) ||
+                                          (rs.name && rs.name.trim().toLowerCase() === st.student_name?.trim().toLowerCase())
+                                ) || rawTeam?.students?.[st.student_order ? st.student_order - 1 : sIdx];
+
+                                const stSem = st.semester || rawSt?.semester || '';
+                                const stEmail = st.email || rawSt?.email || '';
+
+                                return (
+                                  <div key={st.id || sIdx} className="bg-white p-2 rounded-lg border border-slate-200 text-[11px]">
+                                    <span className="font-bold text-slate-900 block truncate">
+                                      {sIdx + 1}. {st.student_name} {st.student_order === 1 ? '(Leader)' : ''}
+                                    </span>
+                                    <span className="text-slate-500 text-[10px] block">
+                                      {st.registration_no} &bull; {st.department} {stSem ? `• ${stSem}` : ''}
+                                    </span>
+                                    <span className="font-mono text-slate-500 text-[10px] block truncate" title={stEmail}>
+                                      {st.contact_number} {stEmail ? `• ${stEmail}` : ''}
+                                    </span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         </div>

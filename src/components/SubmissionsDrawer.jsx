@@ -112,9 +112,20 @@ export const SubmissionsDrawer = ({ isOpen, onClose }) => {
         const mName = t.mentor_name || t.mentorName;
         const mContact = t.mentor_contact || t.mentorContact;
 
+        const rawTeam = sub.raw_payload?.teams?.find((rt) => rt.teamNumber === tNum) || sub.raw_payload?.teams?.[tNum ? tNum - 1 : 0];
+        const rawStudents = rawTeam?.students || [];
+
         const stds = t.competition_students || t.students || [];
 
-        stds.forEach((s) => {
+        stds.forEach((s, sIdx) => {
+          const rawStudent = rawStudents.find(
+            (rs) => (rs.registrationNo && rs.registrationNo === (s.registration_no || s.registrationNo)) ||
+                    (rs.name && rs.name.trim().toLowerCase() === (s.student_name || s.name)?.trim().toLowerCase())
+          ) || rawStudents[sIdx];
+
+          const semVal = s.semester || rawStudent?.semester || '';
+          const emailVal = s.email || rawStudent?.email || '';
+
           rows.push([
             code,
             date,
@@ -128,11 +139,11 @@ export const SubmissionsDrawer = ({ isOpen, onClose }) => {
             mName,
             mContact,
             s.student_name || s.name,
-            s.email || '',
+            emailVal,
             s.contact_number || s.contact,
             s.registration_no || s.registrationNo,
             s.department || '',
-            s.semester || ''
+            semVal
           ]);
         });
       });
