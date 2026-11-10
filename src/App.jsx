@@ -234,6 +234,11 @@ export function App() {
         if (!st.contact.trim()) {
           errs[`team_${tIdx}_student_${sIdx}_contact`] = 'Contact number is required.';
         }
+        if (!st.email?.trim()) {
+          errs[`team_${tIdx}_student_${sIdx}_email`] = 'Student email is required.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(st.email.trim())) {
+          errs[`team_${tIdx}_student_${sIdx}_email`] = 'Enter a valid email address.';
+        }
         if (!st.registrationNo.trim()) {
           errs[`team_${tIdx}_student_${sIdx}_registrationNo`] = 'Registration / Roll No is required.';
         }

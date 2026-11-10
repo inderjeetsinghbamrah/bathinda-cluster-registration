@@ -56,6 +56,7 @@ export const createEmptyStudent = (order = 1) => ({
   id: `student_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
   order,
   name: '',
+  email: '',
   contact: '',
   registrationNo: '',
   department: '',

@@ -210,6 +210,7 @@ export const SubmissionReceipt = ({ submissionData, onResetForm }) => {
                           <th className="p-2">Roll No.</th>
                           <th className="p-2">Branch</th>
                           <th className="p-2">Sem / Year</th>
+                          <th className="p-2">Email</th>
                           <th className="p-2">Phone</th>
                         </tr>
                       </thead>
@@ -226,6 +227,9 @@ export const SubmissionReceipt = ({ submissionData, onResetForm }) => {
                             </td>
                             <td className="p-2 font-semibold text-[11px] text-blue-900">
                               {std.semester || '-'}
+                            </td>
+                            <td className="p-2 text-[11px] text-slate-600">
+                              {std.email || '-'}
                             </td>
                             <td className="p-2 font-mono text-[11px]">{std.contact}</td>
                           </tr>

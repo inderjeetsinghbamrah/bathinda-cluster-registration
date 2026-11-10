@@ -289,6 +289,7 @@ export const AdminPortal = () => {
             registrationNo: s.registration_no,
             department: s.department === 'Others' ? `${s.department} (${s.department_other || ''})` : s.department,
             semester: s.semester || '-',
+            studentEmail: s.email || '-',
             studentContact: s.contact_number
           });
         });
@@ -309,6 +310,7 @@ export const AdminPortal = () => {
       rec.principalName.toLowerCase().includes(q) ||
       rec.mentorName.toLowerCase().includes(q) ||
       rec.studentName.toLowerCase().includes(q) ||
+      rec.studentEmail.toLowerCase().includes(q) ||
       rec.registrationNo.toLowerCase().includes(q) ||
       rec.projectTitle.toLowerCase().includes(q);
 
@@ -352,6 +354,7 @@ export const AdminPortal = () => {
       'Reg / Roll No': r.registrationNo,
       'Department / Branch': r.department,
       'Sem / Year': r.semester,
+      'Student Email': r.studentEmail,
       'Student Contact': r.studentContact,
       'Project Brief': r.projectDescription
     }));
@@ -375,7 +378,7 @@ export const AdminPortal = () => {
     const headers = [
       'Ack Code', 'Date', 'Institute Name', 'Principal', 'Principal Contact',
       'Team #', 'Project Title', 'Theme', 'Mentor Name', 'Mentor Contact',
-      'Student Name', 'Role', 'Roll No', 'Branch', 'Sem / Year', 'Student Contact'
+      'Student Name', 'Role', 'Roll No', 'Branch', 'Sem / Year', 'Student Email', 'Student Contact'
     ];
 
     const rows = filteredRecords.map((r) => [
@@ -394,6 +397,7 @@ export const AdminPortal = () => {
       `"${r.registrationNo.replace(/"/g, '""')}"`,
       `"${r.department.replace(/"/g, '""')}"`,
       `"${(r.semester || '-').replace(/"/g, '""')}"`,
+      `"${(r.studentEmail || '-').replace(/"/g, '""')}"`,
       `"${r.studentContact.replace(/"/g, '""')}"`
     ]);
 
@@ -874,7 +878,9 @@ export const AdminPortal = () => {
                                   <span className="text-slate-500 text-[10px] block">
                                     {st.registration_no} &bull; {st.department} {st.semester ? `• ${st.semester}` : ''}
                                   </span>
-                                  <span className="font-mono text-slate-500 text-[10px] block">{st.contact_number}</span>
+                                  <span className="font-mono text-slate-500 text-[10px] block">
+                                    {st.contact_number} {st.email ? `• ${st.email}` : ''}
+                                  </span>
                                 </div>
                               ))}
                             </div>
@@ -905,21 +911,22 @@ export const AdminPortal = () => {
                     <th className="p-3">Roll / Reg No.</th>
                     <th className="p-3">Department</th>
                     <th className="p-3">Sem / Year</th>
-                    <th className="p-3">Student Contact</th>
+                    <th className="p-3">Email</th>
+                    <th className="p-3">Phone</th>
                     <th className="p-3 text-center no-print">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-slate-800">
                   {isLoadingSubmissions ? (
                     <tr>
-                      <td colSpan={13} className="p-12 text-center text-slate-400">
+                      <td colSpan={14} className="p-12 text-center text-slate-400">
                         <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
                         Loading master submissions from Supabase...
                       </td>
                     </tr>
                   ) : filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan={13} className="p-12 text-center text-slate-400">
+                      <td colSpan={14} className="p-12 text-center text-slate-400">
                         {searchQuery ? 'No records match your search filter.' : 'No competition project submissions recorded yet.'}
                       </td>
                     </tr>
@@ -959,6 +966,7 @@ export const AdminPortal = () => {
                         <td className="p-3 font-mono text-xs text-slate-700 whitespace-nowrap">{r.registrationNo}</td>
                         <td className="p-3 text-slate-700 max-w-[180px]">{r.department}</td>
                         <td className="p-3 font-semibold text-slate-800 whitespace-nowrap">{r.semester}</td>
+                        <td className="p-3 text-slate-600 text-xs truncate max-w-[170px]" title={r.studentEmail}>{r.studentEmail}</td>
                         <td className="p-3 font-mono text-xs text-slate-700 whitespace-nowrap">{r.studentContact}</td>
                         <td className="p-3 text-center no-print">
                           <button

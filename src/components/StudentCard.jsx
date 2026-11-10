@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Phone, Hash, GraduationCap, Calendar, Trash2 } from 'lucide-react';
+import { User, Mail, Phone, Hash, GraduationCap, Calendar, Trash2 } from 'lucide-react';
 import { DEPARTMENTS, SEMESTER_OPTIONS, PHARMACY_YEAR_OPTIONS } from '../lib/constants';
 
 export const StudentCard = ({
@@ -102,6 +102,34 @@ export const StudentCard = ({
             {errors[`team_${teamIndex}_student_${index}_contact`] && (
               <p className="text-[10px] text-red-500 mt-0.5 font-medium">
                 {errors[`team_${teamIndex}_student_${index}_contact`]}
+              </p>
+            )}
+          </div>
+
+          {/* Email ID */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+              Email ID <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                <Mail className="w-3.5 h-3.5" />
+              </div>
+              <input
+                type="email"
+                value={student.email || ''}
+                onChange={(e) => onStudentChange(teamIndex, index, 'email', e.target.value)}
+                placeholder="e.g. student@gmail.com"
+                className={`w-full pl-8 pr-3 py-2 rounded-lg border ${
+                  errors[`team_${teamIndex}_student_${index}_email`]
+                    ? 'border-red-400 bg-red-50/40'
+                    : 'border-slate-300'
+                } text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-xs`}
+              />
+            </div>
+            {errors[`team_${teamIndex}_student_${index}_email`] && (
+              <p className="text-[10px] text-red-500 mt-0.5 font-medium">
+                {errors[`team_${teamIndex}_student_${index}_email`]}
               </p>
             )}
           </div>
