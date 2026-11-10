@@ -1,6 +1,6 @@
 import React from 'react';
-import { User, Phone, Hash, GraduationCap, Trash2 } from 'lucide-react';
-import { DEPARTMENTS } from '../lib/constants';
+import { User, Phone, Hash, GraduationCap, Calendar, Trash2 } from 'lucide-react';
+import { DEPARTMENTS, SEMESTER_OPTIONS, PHARMACY_YEAR_OPTIONS } from '../lib/constants';
 
 export const StudentCard = ({
   student,
@@ -11,6 +11,16 @@ export const StudentCard = ({
   onRemoveStudent,
   errors = {}
 }) => {
+  const isPharmacy = student.department === 'D-Pharmacy';
+
+  const handleDepartmentChange = (val) => {
+    onStudentChange(teamIndex, index, 'department', val);
+    if (val === 'D-Pharmacy' && student.semester && !PHARMACY_YEAR_OPTIONS.includes(student.semester)) {
+      onStudentChange(teamIndex, index, 'semester', '');
+    } else if (val !== 'D-Pharmacy' && PHARMACY_YEAR_OPTIONS.includes(student.semester)) {
+      onStudentChange(teamIndex, index, 'semester', '');
+    }
+  };
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all p-3.5 sm:p-4 flex flex-col justify-between">
       <div>
@@ -135,7 +145,7 @@ export const StudentCard = ({
               </div>
               <select
                 value={student.department}
-                onChange={(e) => onStudentChange(teamIndex, index, 'department', e.target.value)}
+                onChange={(e) => handleDepartmentChange(e.target.value)}
                 className={`w-full pl-8 pr-7 py-2 rounded-lg border ${
                   errors[`team_${teamIndex}_student_${index}_department`]
                     ? 'border-red-400 bg-red-50/40'
@@ -162,7 +172,7 @@ export const StudentCard = ({
 
           {/* If 'Others' department selected */}
           {student.department === 'Others' && (
-            <div className="pt-1">
+            <div className="pt-0.5">
               <label className="block text-[11px] font-bold text-amber-800 mb-1">
                 Specify Branch Name <span className="text-red-500">*</span>
               </label>
@@ -175,6 +185,57 @@ export const StudentCard = ({
               />
             </div>
           )}
+
+          {/* Semester / Year Selector */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide">
+                {isPharmacy ? 'Year of Study' : 'Current Semester'} <span className="text-red-500">*</span>
+              </label>
+              {isPharmacy && (
+                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  Annual Mode
+                </span>
+              )}
+            </div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                <Calendar className="w-3.5 h-3.5" />
+              </div>
+              <select
+                value={student.semester || ''}
+                onChange={(e) => onStudentChange(teamIndex, index, 'semester', e.target.value)}
+                className={`w-full pl-8 pr-7 py-2 rounded-lg border ${
+                  errors[`team_${teamIndex}_student_${index}_semester`]
+                    ? 'border-red-400 bg-red-50/40'
+                    : 'border-slate-300'
+                } text-slate-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-xs appearance-none`}
+              >
+                <option value="">
+                  {isPharmacy ? '-- Select Pharmacy Year --' : '-- Select Semester --'}
+                </option>
+                {isPharmacy
+                  ? PHARMACY_YEAR_OPTIONS.map((yr) => (
+                      <option key={yr} value={yr}>
+                        {yr}
+                      </option>
+                    ))
+                  : SEMESTER_OPTIONS.map((sem) => (
+                      <option key={sem} value={sem}>
+                        {sem}
+                      </option>
+                    ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400 text-xs">
+                ▼
+              </div>
+            </div>
+            {errors[`team_${teamIndex}_student_${index}_semester`] && (
+              <p className="text-[10px] text-red-500 mt-0.5 font-medium">
+                {errors[`team_${teamIndex}_student_${index}_semester`]}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

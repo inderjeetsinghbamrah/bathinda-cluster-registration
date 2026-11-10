@@ -89,7 +89,8 @@ export const SubmissionsDrawer = ({ isOpen, onClose }) => {
         'Student Name',
         'Student Contact',
         'Registration No',
-        'Department'
+        'Department',
+        'Sem / Year'
       ]
     ];
 
@@ -128,7 +129,8 @@ export const SubmissionsDrawer = ({ isOpen, onClose }) => {
             s.student_name || s.name,
             s.contact_number || s.contact,
             s.registration_no || s.registrationNo,
-            s.department || ''
+            s.department || '',
+            s.semester || ''
           ]);
         });
       });

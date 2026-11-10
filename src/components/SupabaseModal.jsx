@@ -112,8 +112,12 @@ CREATE TABLE IF NOT EXISTS competition_students (
     contact_number VARCHAR(50) NOT NULL,
     registration_no VARCHAR(100) NOT NULL,
     department VARCHAR(150) NOT NULL,
-    department_other VARCHAR(255)
+    department_other VARCHAR(255),
+    semester VARCHAR(50)
 );
+
+-- Migration for existing database
+ALTER TABLE competition_students ADD COLUMN IF NOT EXISTS semester VARCHAR(50);
 
 ALTER TABLE cluster_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE competition_teams ENABLE ROW LEVEL SECURITY;

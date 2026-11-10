@@ -196,12 +196,23 @@ export const submitProjectForm = async (formData) => {
       contact_number: student.contact.trim(),
       registration_no: student.registrationNo.trim(),
       department: student.department,
-      department_other: student.department === 'Others' ? (student.departmentOther || '').trim() : null
+      department_other: student.department === 'Others' ? (student.departmentOther || '').trim() : null,
+      semester: (student.semester || '').trim() || null
     }));
 
-    const { error: sError } = await client
+    let { error: sError } = await client
       .from('competition_students')
       .insert(studentRecords);
+
+    // Graceful fallback if Supabase DB has not added 'semester' column yet
+    if (sError && (sError.code === '42703' || String(sError.message).toLowerCase().includes('semester'))) {
+      console.warn("Retrying student insert without 'semester' column (run SQL migration to enable semester column in Supabase)");
+      const fallbackRecords = studentRecords.map(({ semester, ...rest }) => rest);
+      const retryResult = await client
+        .from('competition_students')
+        .insert(fallbackRecords);
+      sError = retryResult.error;
+    }
 
     if (sError) {
       console.error(`Error inserting students for team ${i + 1}:`, sError);

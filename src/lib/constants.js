@@ -36,6 +36,22 @@ export const SUGGESTED_INSTITUTES = [
   'Guru Gobind Singh Polytechnic College, Talwandi Sabo'
 ];
 
+export const SEMESTER_OPTIONS = [
+  '1st Sem',
+  '2nd Sem',
+  '3rd Sem',
+  '4th Sem',
+  '5th Sem',
+  '6th Sem',
+  '7th Sem',
+  '8th Sem'
+];
+
+export const PHARMACY_YEAR_OPTIONS = [
+  '1st Year',
+  '2nd Year'
+];
+
 export const createEmptyStudent = (order = 1) => ({
   id: `student_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
   order,
@@ -43,7 +59,8 @@ export const createEmptyStudent = (order = 1) => ({
   contact: '',
   registrationNo: '',
   department: '',
-  departmentOther: ''
+  departmentOther: '',
+  semester: ''
 });
 
 export const createEmptyTeam = (teamNumber = 1) => ({

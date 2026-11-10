@@ -242,6 +242,9 @@ export function App() {
         } else if (st.department === 'Others' && !st.departmentOther?.trim()) {
           errs[`team_${tIdx}_student_${sIdx}_department`] = 'Specify department.';
         }
+        if (!st.semester) {
+          errs[`team_${tIdx}_student_${sIdx}_semester`] = st.department === 'D-Pharmacy' ? 'Select year of study.' : 'Select semester.';
+        }
       });
     });
 
