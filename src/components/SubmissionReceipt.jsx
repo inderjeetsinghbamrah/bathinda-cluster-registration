@@ -251,7 +251,7 @@ export const SubmissionReceipt = ({ submissionData, onResetForm }) => {
               <ul className="list-disc list-inside text-[11px] text-slate-500 space-y-0.5 mt-1">
                 <li>Bring a printed copy of this acknowledgment slip on the competition day.</li>
                 <li>All student members must carry their institute identity cards.</li>
-                <li>Working models/prototypes and presentation charts must be set up 30 minutes before judging.</li>
+                <li>Working models/prototypes and presentation charts must be set up well ahead of judging.</li>
               </ul>
             </div>
 
