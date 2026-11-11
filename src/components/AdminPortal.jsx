@@ -897,7 +897,7 @@ export const AdminPortal = () => {
             }}
           />
         ) : viewMode === 'judges' ? (
-          <JudgesPanel onBack={() => setViewMode('institutes')} />
+          <JudgesPanel onBack={() => setViewMode('institutes')} submissions={submissions} />
         ) : viewMode === 'institutes' ? (
           <div className="space-y-4">
             {/* Select all header */}

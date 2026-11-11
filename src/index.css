@@ -242,6 +242,39 @@
     overflow: visible !important;
   }
 
+  /* Official Jury Rubric Score Sheet Print Styles */
+  .rubric-score-sheet {
+    box-shadow: none !important;
+    border: 1.5px solid #0e3868 !important;
+    border-radius: 4px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 3mm 5mm !important;
+    box-sizing: border-box !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .rubric-score-sheet table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+
+  .rubric-score-sheet th,
+  .rubric-score-sheet td {
+    padding: 1.5px 3px !important;
+    font-size: 7.5px !important;
+    line-height: 1.15 !important;
+  }
+
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;

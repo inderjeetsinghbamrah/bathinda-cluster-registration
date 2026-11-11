@@ -29,7 +29,8 @@ import {
   Sparkles,
   ExternalLink,
   ChevronRight,
-  UserCheck
+  UserCheck,
+  CheckSquare
 } from 'lucide-react';
 import {
   JUDGE_DOMAINS,
@@ -48,12 +49,13 @@ import {
   generateVectorJuryAttendancePdf,
   createEmptyJudge
 } from '../lib/judgesUtils';
-import { EVENT_DETAILS } from '../lib/attendanceUtils';
+import { EVENT_DETAILS, formatAttendanceData } from '../lib/attendanceUtils';
 import {
   LOGO_PUNJAB_GOVT,
   LOGO_TECH_ED,
   LOGO_GPC_BATHINDA
 } from '../lib/logos';
+import { JuryRubricsSection } from './JuryRubricsSection';
 
 // Custom SVG Bulb with gear innovation icon matching AttendanceSheet
 const InnovationBulbIcon = () => (
@@ -70,14 +72,20 @@ const InnovationBulbIcon = () => (
   </svg>
 );
 
-export const JudgesPanel = ({ onBack = null }) => {
+export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
   const [judges, setJudges] = useState(() => loadJudgesFromStorage());
-  const [activeTab, setActiveTab] = useState('slots'); // 'slots' | 'table' | 'attendance'
+  const [activeTab, setActiveTab] = useState('slots'); // 'slots' | 'table' | 'attendance' | 'rubrics'
   const [attendanceSheetMode, setAttendanceSheetMode] = useState('split'); // 'split' | 'combined' | 'core_only' | 'reserve_only'
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentJudge, setCurrentJudge] = useState(null);
   const [modalErrors, setModalErrors] = useState({});
+
+  // Format teams from submissions
+  const formattedTeams = useMemo(() => {
+    if (!submissions || submissions.length === 0) return [];
+    return formatAttendanceData(submissions, 'custom');
+  }, [submissions]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDomainFilter, setSelectedDomainFilter] = useState('All');
   const [isSyncing, setIsSyncing] = useState(false);
@@ -715,6 +723,18 @@ export const JudgesPanel = ({ onBack = null }) => {
               <FileText className="w-3.5 h-3.5 text-amber-300" />
               <span>Attendance Sheet (PDF)</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('rubrics')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'rubrics'
+                  ? 'bg-blue-900 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <CheckSquare className="w-3.5 h-3.5 text-amber-300" />
+              <span>Evaluation Rubrics (50M)</span>
+            </button>
           </div>
 
           {/* Sync notification message */}
@@ -1336,6 +1356,16 @@ export const JudgesPanel = ({ onBack = null }) => {
                 })}
             </div>
           </div>
+        )}
+
+        {/* TAB 4: OFFICIAL EVALUATION RUBRICS & SCORE SHEETS (50 MARKS) */}
+        {activeTab === 'rubrics' && (
+          <JuryRubricsSection
+            judges={judges}
+            judgesMap={judgesMap}
+            formattedTeams={formattedTeams}
+            onPrint={handlePrint}
+          />
         )}
       </div>
 
