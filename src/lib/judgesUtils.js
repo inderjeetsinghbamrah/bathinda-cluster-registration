@@ -720,9 +720,50 @@ export const generateVectorJuryAttendancePdf = (
   const coreSlots = JUDGE_SLOTS.filter((s) => s.role !== 'RESERVE_JURY_MEMBER');
   const reserveSlots = JUDGE_SLOTS.filter((s) => s.role === 'RESERVE_JURY_MEMBER');
 
+  // Sanitize mode: default to 'split' (separate 2-page sheets) unless 'combined', 'core', or 'reserve' is explicitly passed
+  const validMode =
+    typeof mode === 'string' && ['split', 'combined', 'core', 'reserve'].includes(mode)
+      ? mode
+      : 'split';
+
   let defaultFilename = `Jury_Attendance_Sheet_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
 
-  if (mode === 'split') {
+  if (validMode === 'combined') {
+    // Combined: All 7 positions on 1 page
+    renderJuryPdfPage(
+      doc,
+      JUDGE_SLOTS,
+      judgesList,
+      'Cluster-Level Competition – Jury Evaluation Board Attendance Sheet (Combined)',
+      'Official Evaluation Jury Board Attendance Record (Combined)',
+      1,
+      1
+    );
+    defaultFilename = `Jury_Attendance_Sheet_Combined_All7_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
+  } else if (validMode === 'core') {
+    renderJuryPdfPage(
+      doc,
+      coreSlots,
+      judgesList,
+      'Cluster-Level Competition – Core Evaluation Jury Board Attendance Sheet',
+      'Official Core Jury Board Attendance Record',
+      1,
+      1
+    );
+    defaultFilename = `Jury_Attendance_Sheet_Core_Board_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
+  } else if (validMode === 'reserve') {
+    renderJuryPdfPage(
+      doc,
+      reserveSlots,
+      judgesList,
+      'Cluster-Level Competition – Standby / Reserve Jury Panel Attendance Sheet',
+      'Official Standby / Reserve Jury Attendance Record',
+      1,
+      1
+    );
+    defaultFilename = `Jury_Attendance_Sheet_Reserve_Panel_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
+  } else {
+    // Default 'split': Separate sheets (Page 1: Core Board, Page 2: Reserve Panel)
     // Page 1: Core Evaluation Jury Board (1 Chairperson + 4 Jury Members)
     renderJuryPdfPage(
       doc,
@@ -747,40 +788,6 @@ export const generateVectorJuryAttendancePdf = (
     );
 
     defaultFilename = `Jury_Attendance_Sheet_Core_and_Reserve_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
-  } else if (mode === 'core') {
-    renderJuryPdfPage(
-      doc,
-      coreSlots,
-      judgesList,
-      'Cluster-Level Competition – Core Evaluation Jury Board Attendance Sheet',
-      'Official Core Jury Board Attendance Record',
-      1,
-      1
-    );
-    defaultFilename = `Jury_Attendance_Sheet_Core_Board_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
-  } else if (mode === 'reserve') {
-    renderJuryPdfPage(
-      doc,
-      reserveSlots,
-      judgesList,
-      'Cluster-Level Competition – Standby / Reserve Jury Panel Attendance Sheet',
-      'Official Standby / Reserve Jury Attendance Record',
-      1,
-      1
-    );
-    defaultFilename = `Jury_Attendance_Sheet_Reserve_Panel_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
-  } else {
-    // Combined: All 7 positions on 1 page
-    renderJuryPdfPage(
-      doc,
-      JUDGE_SLOTS,
-      judgesList,
-      'Cluster-Level Competition – Jury Evaluation Board Attendance Sheet (Combined)',
-      'Official Evaluation Jury Board Attendance Record (Combined)',
-      1,
-      1
-    );
-    defaultFilename = `Jury_Attendance_Sheet_Combined_All7_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
   }
 
   const fname = filename || defaultFilename;

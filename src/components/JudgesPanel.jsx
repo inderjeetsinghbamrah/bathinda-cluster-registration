@@ -236,11 +236,12 @@ export const JudgesPanel = ({ onBack = null }) => {
   };
 
   // Download True Vector PDF matching AttendanceSheet
-  const handleDownloadPdf = async (mode = attendanceSheetMode) => {
+  const handleDownloadPdf = async (mode = null) => {
+    const exportMode = typeof mode === 'string' && mode ? mode : attendanceSheetMode;
     setIsExportingPdf(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 80));
-      generateVectorJuryAttendancePdf(judges, mode);
+      generateVectorJuryAttendancePdf(judges, exportMode);
     } catch (err) {
       console.error('PDF export error:', err);
       alert('Failed to generate PDF: ' + err.message);
@@ -274,310 +275,312 @@ export const JudgesPanel = ({ onBack = null }) => {
     pageNumberLabel,
     showStandbyNotice = false,
     isPageBreak = false
-  }) => (
-    <div
-      key={bannerTitle}
-      className={`attendance-page-sheet print-board-sheet jury-attendance-sheet ${
-        isPageBreak ? 'page-break mb-8' : 'mb-6'
-      } bg-white text-slate-900 shadow-xl rounded-2xl border-2 border-[#0e3868] p-4 sm:p-5 relative mx-auto`}
-      style={{
-        width: '1120px',
-        minWidth: '1000px',
-        maxWidth: '100%',
-        boxSizing: 'border-box',
-        backgroundColor: '#ffffff'
-      }}
-    >
-      {/* HEADER SECTION MATCHING AttendanceSheet.jsx */}
-      <div className="pb-3 border-b-2 border-[#0e3868]">
-        <div className="flex items-center justify-between" style={{ gap: '12px' }}>
-          {/* LEFT: Punjab Govt & Tech Ed & Board */}
-          <div style={{ width: '255px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img
-              src={LOGO_PUNJAB_GOVT}
-              alt="Govt of Punjab"
-              style={{ height: '52px', width: 'auto', maxHeight: '52px', objectFit: 'contain' }}
-            />
-            <img
-              src={LOGO_TECH_ED}
-              alt="Tech Ed"
-              style={{ height: '42px', width: '42px', maxHeight: '42px', objectFit: 'contain' }}
-              className="rounded-md"
-            />
-            <div className="flex flex-col">
-              <span style={{ fontSize: '15px', fontWeight: 900, color: '#0e3868', lineHeight: 1, letterSpacing: '-0.3px' }}>
-                {EVENT_DETAILS.boardName}
-              </span>
-              <span style={{ fontSize: '8px', fontWeight: 600, color: '#334155', lineHeight: 1.15, marginTop: '3px' }}>
-                {EVENT_DETAILS.boardFullName}
-              </span>
-            </div>
-          </div>
+  }) => {
+    const minCellHeight = slots.length <= 2 ? '48px' : slots.length <= 5 ? '38px' : '32px';
 
-          {/* CENTER: Innovation Bulb + Challenge Title + Pill Banner + Meta Bar */}
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <div className="flex items-center justify-center gap-2">
-              <InnovationBulbIcon />
-              <h1 style={{ fontSize: '18px', fontWeight: 900, color: '#0e3868', lineHeight: 1, letterSpacing: '-0.2px', whiteSpace: 'nowrap' }}>
-                {EVENT_DETAILS.eventName}
-              </h1>
+    return (
+      <div
+        key={bannerTitle}
+        className={`jury-attendance-sheet ${
+          isPageBreak ? 'page-break mb-8' : 'mb-6'
+        } bg-white text-slate-900 shadow-xl rounded-2xl border-2 border-[#0e3868] p-4 sm:p-5 relative mx-auto`}
+        style={{
+          width: '1120px',
+          maxWidth: '100%',
+          boxSizing: 'border-box',
+          backgroundColor: '#ffffff'
+        }}
+      >
+        {/* HEADER SECTION MATCHING AttendanceSheet.jsx */}
+        <div className="pb-2.5 border-b-2 border-[#0e3868]">
+          <div className="flex items-center justify-between" style={{ gap: '10px' }}>
+            {/* LEFT: Punjab Govt & Tech Ed & Board */}
+            <div style={{ width: '220px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img
+                src={LOGO_PUNJAB_GOVT}
+                alt="Govt of Punjab"
+                style={{ height: '48px', width: 'auto', maxHeight: '48px', objectFit: 'contain' }}
+              />
+              <img
+                src={LOGO_TECH_ED}
+                alt="Tech Ed"
+                style={{ height: '38px', width: '38px', maxHeight: '38px', objectFit: 'contain' }}
+                className="rounded-md"
+              />
+              <div className="flex flex-col">
+                <span style={{ fontSize: '14px', fontWeight: 900, color: '#0e3868', lineHeight: 1, letterSpacing: '-0.3px' }}>
+                  {EVENT_DETAILS.boardName}
+                </span>
+                <span style={{ fontSize: '7.5px', fontWeight: 600, color: '#334155', lineHeight: 1.15, marginTop: '2px' }}>
+                  {EVENT_DETAILS.boardFullName}
+                </span>
+              </div>
             </div>
 
-            {/* Dark Blue Pill Banner */}
-            <div style={{ margin: '5px 0', backgroundColor: '#0e3868', color: '#ffffff', fontWeight: 800, fontSize: '12px', letterSpacing: '0.3px', padding: '3px 22px', borderRadius: '9999px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-              {bannerTitle}
+            {/* CENTER: Innovation Bulb + Challenge Title + Pill Banner + Meta Bar */}
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+              <div className="flex items-center justify-center gap-2">
+                <InnovationBulbIcon />
+                <h1 style={{ fontSize: '17px', fontWeight: 900, color: '#0e3868', lineHeight: 1.1, letterSpacing: '-0.2px' }}>
+                  {EVENT_DETAILS.eventName}
+                </h1>
+              </div>
+
+              {/* Dark Blue Pill Banner */}
+              <div style={{ margin: '4px 0', backgroundColor: '#0e3868', color: '#ffffff', fontWeight: 800, fontSize: '11px', letterSpacing: '0.3px', padding: '2px 18px', borderRadius: '9999px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                {bannerTitle}
+              </div>
+
+              {/* Meta Bar Pill */}
+              <div style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '9999px', padding: '2px 14px', fontSize: '9px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', whiteSpace: 'nowrap' }}>
+                <span>
+                  <span style={{ color: '#64748b' }}>Cluster:</span> Bathinda
+                </span>
+                <span style={{ color: '#94a3b8' }}>|</span>
+                <span>
+                  <span style={{ color: '#64748b' }}>Venue / Host:</span> {EVENT_DETAILS.hostInstitute}
+                </span>
+                <span style={{ color: '#94a3b8' }}>|</span>
+                <span>
+                  <span style={{ color: '#64748b' }}>Date:</span> {EVENT_DETAILS.eventDate}
+                </span>
+              </div>
             </div>
 
-            {/* Meta Bar Pill */}
-            <div style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '9999px', padding: '2px 16px', fontSize: '10px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', whiteSpace: 'nowrap' }}>
-              <span>
-                <span style={{ color: '#64748b' }}>Cluster:</span> Bathinda
-              </span>
-              <span style={{ color: '#94a3b8' }}>|</span>
-              <span>
-                <span style={{ color: '#64748b' }}>Venue / Host:</span> {EVENT_DETAILS.hostInstitute}
-              </span>
-              <span style={{ color: '#94a3b8' }}>|</span>
-              <span>
-                <span style={{ color: '#64748b' }}>Date:</span> {EVENT_DETAILS.eventDate}
-              </span>
+            {/* RIGHT: Host Institute Logo & Official Tag */}
+            <div style={{ width: '220px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', textAlign: 'right' }}>
+              <div className="flex flex-col items-end">
+                <span style={{ fontSize: '10.5px', fontWeight: 900, color: '#0e3868', lineHeight: 1.2, maxWidth: '170px' }}>
+                  {EVENT_DETAILS.hostInstitute}
+                </span>
+                <span style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: '2px' }}>
+                  Host Institute &amp; Nodal Center
+                </span>
+              </div>
+              <img
+                src={LOGO_GPC_BATHINDA}
+                alt="GPC Bathinda"
+                style={{ height: '48px', width: '48px', maxHeight: '48px', objectFit: 'contain' }}
+                className="rounded-full"
+              />
             </div>
-          </div>
-
-          {/* RIGHT: Host Institute Logo & Official Tag */}
-          <div style={{ width: '255px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', textAlign: 'right' }}>
-            <div className="flex flex-col items-end">
-              <span style={{ fontSize: '11px', fontWeight: 900, color: '#0e3868', lineHeight: 1.2, maxWidth: '180px' }}>
-                {EVENT_DETAILS.hostInstitute}
-              </span>
-              <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: '2px' }}>
-                Host Institute &amp; Nodal Center
-              </span>
-            </div>
-            <img
-              src={LOGO_GPC_BATHINDA}
-              alt="GPC Bathinda"
-              style={{ height: '52px', width: '52px', maxHeight: '52px', objectFit: 'contain' }}
-              className="rounded-full"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Standby Protocol Notice (shown on reserve panel) */}
-      {showStandbyNotice && (
-        <div className="mt-2.5 px-3 py-1.5 rounded-lg bg-purple-50 border border-purple-200 text-purple-900 text-[10px] font-semibold flex items-center justify-between">
-          <span>
-            <strong>Reserve / Alternate Jury Protocol:</strong> Standby jury members evaluate projects upon requirement to resolve domain-specific ties or in the absence of an assigned core member.
-          </span>
-          <span className="text-[9px] font-bold uppercase tracking-wider bg-purple-200 text-purple-900 px-2 py-0.5 rounded">
-            Standby Roster
-          </span>
-        </div>
-      )}
-
-      {/* OFFICIAL TABLE */}
-      <div className="mt-3">
-        <table className="w-full border-collapse text-left" style={{ tableLayout: 'fixed' }}>
-          <thead>
-            <tr className="bg-[#0e3868] text-white text-[9.5px] font-bold uppercase tracking-wider">
-              <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '3.5%' }}>
-                Sr. No.
-              </th>
-              <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '14.5%' }}>
-                Jury Designation / Role
-              </th>
-              <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '18%' }}>
-                Judge Full Name &amp; Contact No.
-              </th>
-              <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '21%' }}>
-                Designation, Organisation &amp; Location
-              </th>
-              <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '15%' }}>
-                Domain Specialization
-              </th>
-              <th className="p-1.5 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]" style={{ width: '7%' }}>
-                Reporting<br />In-Time
-              </th>
-              <th className="p-1.5 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]" style={{ width: '14%' }}>
-                Attendance / Physical Signature
-              </th>
-              <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '7%' }}>
-                Remarks
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {slots.map((slot, idx) => {
-              const judge = judgesMap.get(slot.slotKey);
-              const isChair = slot.role === 'CHAIRPERSON';
-              const isReserve = slot.role === 'RESERVE_JURY_MEMBER';
-              const rowBg = isChair ? '#fffdf0' : isReserve ? '#faf5ff' : idx % 2 === 0 ? '#ffffff' : '#f0f7ff';
-              const minCellHeight = slots.length <= 2 ? '56px' : slots.length <= 5 ? '48px' : '44px';
-
-              return (
-                <tr
-                  key={slot.slotKey}
-                  style={{ backgroundColor: rowBg }}
-                  className="text-slate-900 border-b border-[#cbd5e1] text-[10px]"
-                >
-                  {/* Sr. No. */}
-                  <td className="p-1.5 text-center font-black text-slate-800 text-[11px] border border-[#cbd5e1] align-middle">
-                    {idx + 1}
-                  </td>
-
-                  {/* Jury Role */}
-                  <td className="p-1.5 border border-[#cbd5e1] align-middle">
-                    <div className="font-extrabold text-slate-900 uppercase text-[10px] leading-tight">
-                      {slot.label}
-                    </div>
-                    <span className="text-[8.5px] text-slate-500 font-semibold block mt-0.5 uppercase">
-                      {slot.roleTitle}
-                    </span>
-                  </td>
-
-                  {/* Judge Full Name & Contact */}
-                  <td className="p-1.5 border border-[#cbd5e1] align-middle uppercase">
-                    {judge?.name ? (
-                      <>
-                        <div className="font-black text-slate-900 text-[10.5px] uppercase leading-tight">
-                          {judge.name}
-                        </div>
-                        <div className="text-[9px] text-slate-700 font-mono mt-0.5 font-bold">
-                          PH: {judge.contact || '-'}
-                        </div>
-                        {judge.email && (
-                          <div className="text-[8.5px] text-slate-500 font-mono lowercase">
-                            {judge.email}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-slate-400 italic text-[9.5px]">
-                        [VACANT / UNASSIGNED]
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Designation, Organisation & Location */}
-                  <td className="p-1.5 border border-[#cbd5e1] align-middle uppercase">
-                    {judge?.organisation ? (
-                      <>
-                        <div className="font-bold text-slate-900 text-[10px] leading-tight uppercase">
-                          {judge.designation}
-                        </div>
-                        <div className="text-[9.5px] text-slate-700 font-semibold mt-0.5 uppercase leading-tight">
-                          {judge.organisation}
-                        </div>
-                        <div className="text-[8.5px] text-slate-500 font-medium uppercase mt-0.5">
-                          ({judge.organisationLocation || '-'})
-                        </div>
-                      </>
-                    ) : (
-                      <span className="text-slate-300">-</span>
-                    )}
-                  </td>
-
-                  {/* Domain Specialization */}
-                  <td className="p-1.5 text-center border border-[#cbd5e1] align-middle uppercase">
-                    {judge?.domain ? (
-                      <span className="inline-block px-2 py-0.5 rounded-full font-black text-[8.5px] bg-blue-100 text-blue-900 border border-blue-200 uppercase leading-snug">
-                        {judge.domain}
-                      </span>
-                    ) : (
-                      <span className="text-slate-300">-</span>
-                    )}
-                  </td>
-
-                  {/* Reporting In-Time Physical Blank Box */}
-                  <td
-                    className="p-1 border border-[#cbd5e1] align-middle bg-white"
-                    style={{ minHeight: minCellHeight, height: minCellHeight }}
-                  >
-                    <div className="w-full h-full min-h-[40px]"></div>
-                  </td>
-
-                  {/* Attendance / Physical Signature Blank Box */}
-                  <td
-                    className="p-1 border border-[#cbd5e1] align-middle bg-white"
-                    style={{ minHeight: minCellHeight, height: minCellHeight }}
-                  >
-                    <div className="w-full h-full min-h-[40px]"></div>
-                  </td>
-
-                  {/* Remarks Physical Blank Box */}
-                  <td
-                    className="p-1 border border-[#cbd5e1] align-middle bg-white"
-                    style={{ minHeight: minCellHeight, height: minCellHeight }}
-                  >
-                    <div className="w-full h-full min-h-[40px]"></div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* FOOTER & OFFICIAL SIGN-OFF SECTION */}
-      <div className="mt-6 pt-4 border-t-2 border-[#0e3868]/40">
-        <div className="flex items-start justify-between text-xs text-slate-700 px-4 pb-2">
-          {/* Left Sign: Chairperson */}
-          <div className="text-center w-64">
-            <div className="h-10 border-b border-dashed border-slate-400"></div>
-            <span className="font-bold text-[11px] text-slate-900 block mt-1.5 uppercase">
-              Chairperson, Jury Board
-            </span>
-            <span className="text-[9.5px] text-slate-600 font-medium block leading-tight mt-0.5">
-              Evaluation Jury Board &bull; Bathinda Cluster
-            </span>
-          </div>
-
-          {/* Center Sign: Nodal Officer */}
-          <div className="text-center w-64">
-            <div className="h-10 border-b border-dashed border-slate-400"></div>
-            <span className="font-bold text-[11px] text-slate-900 block mt-1.5 uppercase">
-              Nodal Officer
-            </span>
-            <span className="text-[9.5px] text-slate-600 font-medium block leading-tight mt-0.5">
-              Bathinda Cluster &bull; Polytechnic Innovation Challenge 2026-27
-            </span>
-          </div>
-
-          {/* Right Sign: Principal */}
-          <div className="text-center w-72">
-            <div className="h-10 border-b border-dashed border-slate-400"></div>
-            <span className="font-bold text-[11px] text-slate-900 block mt-1.5 uppercase">
-              Principal
-            </span>
-            <span className="text-[9.5px] text-slate-600 font-medium block leading-tight mt-0.5">
-              Host Institute, Bathinda Cluster
-            </span>
-            <span className="text-[9px] text-slate-500 block leading-tight mt-0.5">
-              Government Polytechnic College, Bathinda
-            </span>
           </div>
         </div>
 
-        {/* Sub-footer line */}
-        <div className="mt-2 pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-500 px-1">
-          <span>
-            <strong>{EVENT_DETAILS.eventName}</strong> &bull; {EVENT_DETAILS.cluster} &bull; Host: {EVENT_DETAILS.hostInstitute} &bull; {subfooterTag}
-          </span>
-          <div className="flex items-center gap-3">
-            {pageNumberLabel && (
-              <span className="font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                {pageNumberLabel}
-              </span>
-            )}
+        {/* Standby Protocol Notice (shown on reserve panel) */}
+        {showStandbyNotice && (
+          <div className="mt-2 px-3 py-1.5 rounded-lg bg-purple-50 border border-purple-200 text-purple-900 text-[9.5px] font-semibold flex items-center justify-between">
             <span>
-              Date: <strong>{EVENT_DETAILS.eventDate}</strong>
+              <strong>Reserve / Alternate Jury Protocol:</strong> Standby jury members evaluate projects upon requirement to resolve domain-specific ties or in the absence of an assigned core member.
             </span>
+            <span className="text-[8.5px] font-bold uppercase tracking-wider bg-purple-200 text-purple-900 px-2 py-0.5 rounded">
+              Standby Roster
+            </span>
+          </div>
+        )}
+
+        {/* OFFICIAL TABLE */}
+        <div className="mt-2.5">
+          <table className="w-full border-collapse text-left" style={{ tableLayout: 'fixed' }}>
+            <thead>
+              <tr className="bg-[#0e3868] text-white text-[9px] font-bold uppercase tracking-wider">
+                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '3.5%' }}>
+                  Sr. No.
+                </th>
+                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '15%' }}>
+                  Jury Designation / Role
+                </th>
+                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '19%' }}>
+                  Judge Full Name &amp; Contact No.
+                </th>
+                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '21%' }}>
+                  Designation, Organisation &amp; Location
+                </th>
+                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '15%' }}>
+                  Domain Specialization
+                </th>
+                <th className="p-1.5 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]" style={{ width: '7%' }}>
+                  Reporting<br />In-Time
+                </th>
+                <th className="p-1.5 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]" style={{ width: '13%' }}>
+                  Attendance / Physical Signature
+                </th>
+                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '6.5%' }}>
+                  Remarks
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {slots.map((slot, idx) => {
+                const judge = judgesMap.get(slot.slotKey);
+                const isChair = slot.role === 'CHAIRPERSON';
+                const isReserve = slot.role === 'RESERVE_JURY_MEMBER';
+                const rowBg = isChair ? '#fffdf0' : isReserve ? '#faf5ff' : idx % 2 === 0 ? '#ffffff' : '#f0f7ff';
+
+                return (
+                  <tr
+                    key={slot.slotKey}
+                    style={{ backgroundColor: rowBg }}
+                    className="text-slate-900 border-b border-[#cbd5e1] text-[9.5px]"
+                  >
+                    {/* Sr. No. */}
+                    <td className="p-1.5 text-center font-black text-slate-800 text-[10.5px] border border-[#cbd5e1] align-middle">
+                      {idx + 1}
+                    </td>
+
+                    {/* Jury Role */}
+                    <td className="p-1.5 border border-[#cbd5e1] align-middle">
+                      <div className="font-extrabold text-slate-900 uppercase text-[9.5px] leading-tight">
+                        {slot.label}
+                      </div>
+                      <span className="text-[8px] text-slate-500 font-semibold block mt-0.5 uppercase">
+                        {slot.roleTitle}
+                      </span>
+                    </td>
+
+                    {/* Judge Full Name & Contact */}
+                    <td className="p-1.5 border border-[#cbd5e1] align-middle uppercase">
+                      {judge?.name ? (
+                        <>
+                          <div className="font-black text-slate-900 text-[10px] uppercase leading-tight">
+                            {judge.name}
+                          </div>
+                          <div className="text-[8.5px] text-slate-700 font-mono mt-0.5 font-bold">
+                            PH: {judge.contact || '-'}
+                          </div>
+                          {judge.email && (
+                            <div className="text-[8px] text-slate-500 font-mono lowercase">
+                              {judge.email}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-slate-400 italic text-[9px]">
+                          [VACANT / UNASSIGNED]
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Designation, Organisation & Location */}
+                    <td className="p-1.5 border border-[#cbd5e1] align-middle uppercase">
+                      {judge?.organisation ? (
+                        <>
+                          <div className="font-bold text-slate-900 text-[9.5px] leading-tight uppercase">
+                            {judge.designation}
+                          </div>
+                          <div className="text-[9px] text-slate-700 font-semibold mt-0.5 uppercase leading-tight">
+                            {judge.organisation}
+                          </div>
+                          <div className="text-[8px] text-slate-500 font-medium uppercase mt-0.5">
+                            ({judge.organisationLocation || '-'})
+                          </div>
+                        </>
+                      ) : (
+                        <span className="text-slate-300">-</span>
+                      )}
+                    </td>
+
+                    {/* Domain Specialization */}
+                    <td className="p-1.5 text-center border border-[#cbd5e1] align-middle uppercase">
+                      {judge?.domain ? (
+                        <span className="inline-block px-2 py-0.5 rounded-full font-black text-[8px] bg-blue-100 text-blue-900 border border-blue-200 uppercase leading-snug">
+                          {judge.domain}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300">-</span>
+                      )}
+                    </td>
+
+                    {/* Reporting In-Time Physical Blank Box */}
+                    <td
+                      className="p-1 border border-[#cbd5e1] align-middle bg-white"
+                      style={{ minHeight: minCellHeight, height: minCellHeight }}
+                    >
+                      <div className="w-full h-full min-h-[30px]"></div>
+                    </td>
+
+                    {/* Attendance / Physical Signature Blank Box */}
+                    <td
+                      className="p-1 border border-[#cbd5e1] align-middle bg-white"
+                      style={{ minHeight: minCellHeight, height: minCellHeight }}
+                    >
+                      <div className="w-full h-full min-h-[30px]"></div>
+                    </td>
+
+                    {/* Remarks Physical Blank Box */}
+                    <td
+                      className="p-1 border border-[#cbd5e1] align-middle bg-white"
+                      style={{ minHeight: minCellHeight, height: minCellHeight }}
+                    >
+                      <div className="w-full h-full min-h-[30px]"></div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* FOOTER & OFFICIAL SIGN-OFF SECTION */}
+        <div className="mt-4 pt-2 border-t-2 border-[#0e3868]/40">
+          <div className="flex items-start justify-between text-xs text-slate-700 px-3 pb-1">
+            {/* Left Sign: Chairperson */}
+            <div className="text-center w-60">
+              <div className="h-8 border-b border-dashed border-slate-400"></div>
+              <span className="font-bold text-[10px] text-slate-900 block mt-1 uppercase">
+                Chairperson, Jury Board
+              </span>
+              <span className="text-[8.5px] text-slate-600 font-medium block leading-tight mt-0.5">
+                Evaluation Jury Board &bull; Bathinda Cluster
+              </span>
+            </div>
+
+            {/* Center Sign: Nodal Officer */}
+            <div className="text-center w-60">
+              <div className="h-8 border-b border-dashed border-slate-400"></div>
+              <span className="font-bold text-[10px] text-slate-900 block mt-1 uppercase">
+                Nodal Officer
+              </span>
+              <span className="text-[8.5px] text-slate-600 font-medium block leading-tight mt-0.5">
+                Bathinda Cluster &bull; Polytechnic Innovation Challenge 2026-27
+              </span>
+            </div>
+
+            {/* Right Sign: Principal */}
+            <div className="text-center w-64">
+              <div className="h-8 border-b border-dashed border-slate-400"></div>
+              <span className="font-bold text-[10px] text-slate-900 block mt-1 uppercase">
+                Principal
+              </span>
+              <span className="text-[8.5px] text-slate-600 font-medium block leading-tight mt-0.5">
+                Host Institute, Bathinda Cluster
+              </span>
+              <span className="text-[8px] text-slate-500 block leading-tight mt-0.5">
+                Government Polytechnic College, Bathinda
+              </span>
+            </div>
+          </div>
+
+          {/* Sub-footer line */}
+          <div className="mt-1.5 pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-500 px-1">
+            <span>
+              <strong>{EVENT_DETAILS.eventName}</strong> &bull; {EVENT_DETAILS.cluster} &bull; Host: {EVENT_DETAILS.hostInstitute} &bull; {subfooterTag}
+            </span>
+            <div className="flex items-center gap-3">
+              {pageNumberLabel && (
+                <span className="font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  {pageNumberLabel}
+                </span>
+              )}
+              <span>
+                Date: <strong>{EVENT_DETAILS.eventDate}</strong>
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="judges-panel-wrapper min-h-screen bg-slate-100 py-6 px-3 sm:px-6 font-['Plus_Jakarta_Sans',sans-serif]">
@@ -616,31 +619,43 @@ export const JudgesPanel = ({ onBack = null }) => {
 
           {/* Quick Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Download Vector PDF Button */}
+            {/* Download Separate PDF (2 Pages) Button */}
             <button
               type="button"
-              onClick={handleDownloadPdf}
+              onClick={() => handleDownloadPdf('split')}
               disabled={isExportingPdf}
               className="px-3.5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-950 active:scale-95 text-white text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shadow-sm transition cursor-pointer disabled:opacity-50"
-              title="Download Official Vector PDF Attendance Sheet (Landscape A4)"
+              title="Download 2-Page Vector PDF (Page 1: Core Board, Page 2: Reserve Panel)"
             >
               {isExportingPdf ? (
                 <RefreshCw className="w-4 h-4 animate-spin text-amber-300" />
               ) : (
                 <Download className="w-4 h-4 text-amber-300" />
               )}
-              <span>{isExportingPdf ? 'Exporting...' : 'Download PDF'}</span>
+              <span>Download Separate (2 Pages)</span>
             </button>
 
-            {/* Print / Official Sheet Button */}
+            {/* Download Combined PDF (1 Page) Button */}
+            <button
+              type="button"
+              onClick={() => handleDownloadPdf('combined')}
+              disabled={isExportingPdf}
+              className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 border border-slate-300 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+              title="Download 1-Page Combined Vector PDF (All 7 Positions on 1 Sheet)"
+            >
+              <Download className="w-4 h-4 text-slate-600" />
+              <span>Combined (1 Page)</span>
+            </button>
+
+            {/* Print Sheet(s) Button */}
             <button
               type="button"
               onClick={handlePrint}
               className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 active:scale-95 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
-              title="Print official Jury Attendance Sheet (Landscape A4)"
+              title="Print official Jury Attendance Sheet(s) (Landscape A4)"
             >
               <Printer className="w-4 h-4 text-blue-300" />
-              <span>Print Sheet</span>
+              <span>Print Sheet(s)</span>
             </button>
 
             {/* Export Excel Button */}
@@ -648,10 +663,10 @@ export const JudgesPanel = ({ onBack = null }) => {
               type="button"
               onClick={handleExportExcel}
               className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
-              title="Export official Jury Attendance Sheet to Excel (.xlsx)"
+              title="Export official Jury Attendance Sheet to Excel (Core Board, Reserve Panel, and Combined tabs)"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
-              <span>Excel</span>
+              <span>Excel (3 Tabs)</span>
             </button>
 
             {/* Export CSV Button */}
@@ -1136,7 +1151,7 @@ export const JudgesPanel = ({ onBack = null }) => {
 
         {/* TAB 3: OFFICIAL EVALUATION BOARD ATTENDANCE SHEET */}
         {activeTab === 'attendance' && (
-          <div className="w-full flex flex-col items-center">
+          <div className="attendance-tab-container w-full flex flex-col items-center">
             {/* Control & Info Bar above Attendance Sheet (Hidden in print) */}
             <div className="w-full max-w-[1120px] mb-4 bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-xs space-y-3 no-print">
               {/* Row 1: Title, Tag & Export Action Buttons */}
@@ -1278,7 +1293,10 @@ export const JudgesPanel = ({ onBack = null }) => {
             </div>
 
             {/* Attendance Sheet Scroll Wrapper */}
-            <div ref={printAreaRef} className="w-full overflow-x-auto pb-6 flex flex-col items-center">
+            <div
+              ref={printAreaRef}
+              className="attendance-sheet-print-container w-full overflow-x-auto pb-6 flex flex-col items-center"
+            >
               {attendanceSheetMode === 'split' && (
                 <>
                   {/* Sheet 1: Core Evaluation Jury Board (1 Chairperson + 4 Jury Members) */}

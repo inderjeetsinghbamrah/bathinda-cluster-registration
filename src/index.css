@@ -101,12 +101,23 @@
     min-height: auto !important;
   }
 
+  .judges-panel-wrapper > div,
+  .attendance-tab-container {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   .attendance-sheet-print-container {
     display: block !important;
     width: 100% !important;
+    max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     gap: 0 !important;
+    overflow: visible !important;
   }
 
   .print-board-sheet {
@@ -157,16 +168,50 @@
   }
 
   .jury-attendance-sheet {
+    box-shadow: none !important;
+    border: 1.5px solid #0e3868 !important;
+    border-radius: 4px !important;
+    width: 100% !important;
+    max-width: 100% !important;
     min-width: 0 !important;
-    max-height: none !important;
     height: auto !important;
+    max-height: 195mm !important;
+    margin: 0 !important;
+    padding: 3mm 5mm !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
     page-break-after: avoid !important;
     break-after: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .jury-attendance-sheet.page-break {
     page-break-after: always !important;
     break-after: page !important;
+    margin-bottom: 0 !important;
+  }
+
+  .jury-attendance-sheet:last-of-type,
+  .jury-attendance-sheet:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    margin-bottom: 0 !important;
+  }
+
+  .jury-attendance-sheet table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+
+  .jury-attendance-sheet th,
+  .jury-attendance-sheet td {
+    padding: 2px 3px !important;
+    font-size: 8px !important;
+    line-height: 1.15 !important;
   }
 
   .attendance-page-sheet:last-of-type,
