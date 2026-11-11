@@ -271,10 +271,10 @@ export const JuryRubricsSection = ({
               onClick={handleDownloadAllSheets}
               disabled={isExportingPdf || formattedTeams.length === 0}
               className="px-3.5 py-2 rounded-xl bg-[#0e3868] hover:bg-blue-950 active:scale-95 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-xs transition cursor-pointer disabled:opacity-50"
-              title="Download all project score sheets in 1 multi-page PDF"
+              title="Download all project score sheets in 1 multi-page PDF (Only Team Code & Project Title)"
             >
               <Download className="w-3.5 h-3.5 text-amber-300" />
-              <span>All 17 Projects (PDF)</span>
+              <span>All Projects in Single PDF</span>
             </button>
 
             {/* Rubrics Reference Guide PDF */}
@@ -651,40 +651,24 @@ export const JuryRubricsSection = ({
               </div>
             </div>
 
-            {/* PROJECT METADATA CARD */}
-            <div className="mt-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-300 text-[10px] grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5">
-              <div>
-                <span className="font-extrabold text-[#0e3868] uppercase">Project Title &amp; Code: </span>
-                <span className="font-bold text-slate-900">
-                  {currentPreviewTeam ? `${currentPreviewTeam.projectTitle} [${currentPreviewTeam.submissionCode}]` : '_____________________________________________________'}
+            {/* PROJECT METADATA CARD (ONLY TEAM CODE & PROJECT TITLE) */}
+            <div className="mt-2.5 p-2 px-3 rounded-xl bg-slate-50 border border-slate-300 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 rounded-lg bg-[#0e3868] text-white font-mono font-black text-xs tracking-wider shadow-2xs">
+                  {currentPreviewTeam?.teamCode || 'TEAM [  ]'}
                 </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-[#0e3868] uppercase text-[10px]">Project Title:</span>
+                  <span className="font-extrabold text-slate-900 text-xs uppercase">
+                    {currentPreviewTeam ? currentPreviewTeam.projectTitle : '_____________________________________________________'}
+                  </span>
+                </div>
               </div>
 
-              <div>
-                <span className="font-extrabold text-[#0e3868] uppercase">Theme Domain: </span>
-                <span className="font-medium text-slate-800">
-                  {currentPreviewTeam?.theme?.name || currentPreviewTeam?.projectTheme || '__________________________________'}
-                </span>
-              </div>
-
-              <div>
-                <span className="font-extrabold text-[#0e3868] uppercase">Institute Name: </span>
-                <span className="font-medium text-slate-800">
-                  {currentPreviewTeam ? currentPreviewTeam.instituteName : '_____________________________________________________'}
-                </span>
-              </div>
-
-              <div>
-                <span className="font-extrabold text-[#0e3868] uppercase">Project Mentor: </span>
-                <span className="font-medium text-slate-800">
-                  {currentPreviewTeam ? `${currentPreviewTeam.mentorName} (PH: ${currentPreviewTeam.mentorContact || '-'})` : '__________________________________'}
-                </span>
-              </div>
-
-              <div className="md:col-span-2">
-                <span className="font-extrabold text-[#0e3868] uppercase">Student Team: </span>
-                <span className="font-medium text-slate-800">
-                  {currentPreviewTeam?.students?.map((s) => `${s.name} (${s.registrationNo || '-'})`).join(', ') || '__________________________________________________________________________________'}
+              <div className="flex items-center gap-2 text-xs">
+                <span className="font-bold text-slate-500 uppercase text-[10px]">Evaluator:</span>
+                <span className="font-semibold text-slate-800">
+                  {currentJudge?.name || '____________________'}
                 </span>
               </div>
             </div>

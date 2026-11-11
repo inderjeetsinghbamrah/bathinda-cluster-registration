@@ -5,15 +5,15 @@
 // Parameters 3 & 4: Max 2 Marks each (Scores: 0, 1, 2; 3 is Not Applicable)
 // ==============================================================================
 
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { EVENT_DETAILS } from './attendanceUtils';
+import { EVENT_DETAILS } from './attendanceUtils.js';
 import {
   LOGO_PUNJAB_GOVT,
   LOGO_TECH_ED,
   LOGO_GPC_BATHINDA
-} from './logos';
+} from './logos.js';
 
 export const TOTAL_RUBRIC_MAX_MARKS = 50;
 
@@ -508,77 +508,47 @@ export const generateVectorTeamScoreSheetPdf = (teamData = null, judgeName = '',
     true
   );
 
-  // Metadata Box (Project, Institute, Mentor, Evaluating Judge)
+  // Metadata Box (ONLY Team Code & Project Title)
   const metaBoxY = startY;
-  const metaBoxHeight = 16;
+  const metaBoxHeight = 10;
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(14, 56, 104);
-  doc.setLineWidth(0.4);
+  doc.setLineWidth(0.5);
   doc.roundedRect(9, metaBoxY, 279, metaBoxHeight, 1.5, 1.5, 'FD');
 
-  // Metadata Content
+  const teamCodeStr = teamData ? (teamData.teamCode || `TEAM ${String(teamData.globalSrNo || 1).padStart(2, '0')}`) : 'TEAM [  ]';
+  const projectTitleStr = teamData?.projectTitle ? String(teamData.projectTitle).toUpperCase() : '__________________________________________________________________________';
+
+  // Team Code Badge (Solid Dark Blue Pill)
+  doc.setFillColor(14, 56, 104);
+  doc.roundedRect(12, metaBoxY + 1.8, 34, 6.4, 1.5, 1.5, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text(teamCodeStr, 29, metaBoxY + 6.1, { align: 'center' });
+
+  // Project Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(14, 56, 104);
+  doc.text('PROJECT TITLE:', 51, metaBoxY + 6.1);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42);
+  const maxTitleW = 150;
+  const splitTitle = doc.splitTextToSize(projectTitleStr, maxTitleW);
+  doc.text(splitTitle[0] || projectTitleStr, 78, metaBoxY + 6.1);
+
+  // Evaluator space on Right
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.5);
   doc.setTextColor(14, 56, 104);
-
-  // Column 1: Team & Code
-  doc.text('PROJECT TITLE & CODE:', 12, metaBoxY + 4.5);
+  doc.text('EVALUATOR:', 236, metaBoxY + 6.1, { align: 'right' });
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(30, 41, 59);
-  const teamCodeBadge = teamData?.teamCode ? `[${teamData.teamCode}] ` : '';
-  const projTitle = teamData ? `${teamCodeBadge}${teamData.projectTitle} (${teamData.submissionCode})` : '____________________________________________________';
-  doc.text(projTitle, 52, metaBoxY + 4.5);
-
-  doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.5);
-  doc.setTextColor(14, 56, 104);
-  doc.text('INSTITUTE NAME:', 12, metaBoxY + 9);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(30, 41, 59);
-  const instName = teamData ? teamData.instituteName : '____________________________________________________';
-  doc.text(instName, 52, metaBoxY + 9);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(14, 56, 104);
-  doc.text('STUDENT TEAM:', 12, metaBoxY + 13.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.8);
-  doc.setTextColor(30, 41, 59);
-  const studentNames = teamData?.students?.map((s) => s.name).join(', ') || '____________________________________________________';
-  doc.text(studentNames, 52, metaBoxY + 13.5);
-
-  // Column 2: Theme, Mentor, Judge
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(14, 56, 104);
-  doc.text('PROJECT THEME:', 170, metaBoxY + 4.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(30, 41, 59);
-  const themeName = teamData?.theme?.name || teamData?.projectTheme || '______________________________';
-  doc.text(themeName, 202, metaBoxY + 4.5);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(14, 56, 104);
-  doc.text('PROJECT MENTOR:', 170, metaBoxY + 9);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(30, 41, 59);
-  const mentor = teamData?.mentorName ? `${teamData.mentorName} (PH: ${teamData.mentorContact || '-'})` : '______________________________';
-  doc.text(mentor, 202, metaBoxY + 9);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(14, 56, 104);
-  doc.text('EVALUATING JUDGE:', 170, metaBoxY + 13.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(30, 41, 59);
-  doc.text(judgeName || '______________________________', 202, metaBoxY + 13.5);
+  doc.setTextColor(50, 50, 50);
+  doc.text(judgeName || '____________________', 238, metaBoxY + 6.1);
 
   // 20-Sub-Criteria Scoring Grid (Table)
   const tableRows = [];
@@ -703,75 +673,54 @@ export const generateBatchAllTeamsScoreSheetsPdf = (teamsList = [], filename = n
   teamsList.forEach((team, idx) => {
     if (idx > 0) doc.addPage('a4', 'landscape');
 
+    const teamCodeStr = team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`;
+    const projectTitleStr = String(team.projectTitle || '').toUpperCase();
+
     const startY = renderPdfHeader(
       doc,
-      `Official Jury Evaluation Sheet • Project ${idx + 1} of ${teamsList.length} (Max 50 Marks)`,
+      `Official Jury Evaluation Sheet • ${teamCodeStr} (Maximum 50 Marks)`,
       '',
       true
     );
 
-    // Metadata Box
+    // Metadata Box (ONLY Team Code & Project Title)
     const metaBoxY = startY;
-    const metaBoxHeight = 16;
+    const metaBoxHeight = 10;
     doc.setFillColor(248, 250, 252);
     doc.setDrawColor(14, 56, 104);
-    doc.setLineWidth(0.4);
+    doc.setLineWidth(0.5);
     doc.roundedRect(9, metaBoxY, 279, metaBoxHeight, 1.5, 1.5, 'FD');
 
+    // Team Code Badge (Solid Dark Blue Pill)
+    doc.setFillColor(14, 56, 104);
+    doc.roundedRect(12, metaBoxY + 1.8, 34, 6.4, 1.5, 1.5, 'F');
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
+    doc.setFontSize(9.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text(teamCodeStr, 29, metaBoxY + 6.1, { align: 'center' });
+
+    // Project Title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
     doc.setTextColor(14, 56, 104);
-    doc.text('PROJECT TITLE & CODE:', 12, metaBoxY + 4.5);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(30, 41, 59);
-    doc.text(`${team.projectTitle} [${team.submissionCode}]`, 52, metaBoxY + 4.5);
+    doc.text('PROJECT TITLE:', 51, metaBoxY + 6.1);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(14, 56, 104);
-    doc.text('INSTITUTE NAME:', 12, metaBoxY + 9);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(30, 41, 59);
-    doc.text(team.instituteName, 52, metaBoxY + 9);
+    doc.setFontSize(8.5);
+    doc.setTextColor(15, 23, 42);
+    const maxTitleW = 150;
+    const splitTitle = doc.splitTextToSize(projectTitleStr, maxTitleW);
+    doc.text(splitTitle[0] || projectTitleStr, 78, metaBoxY + 6.1);
 
+    // Evaluator space on Right
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
     doc.setTextColor(14, 56, 104);
-    doc.text('STUDENT TEAM:', 12, metaBoxY + 13.5);
+    doc.text('EVALUATOR:', 236, metaBoxY + 6.1, { align: 'right' });
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.8);
-    doc.setTextColor(30, 41, 59);
-    const studentNames = team.students?.map((s) => s.name).join(', ') || 'N/A';
-    doc.text(studentNames, 52, metaBoxY + 13.5);
-
-    doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
-    doc.setTextColor(14, 56, 104);
-    doc.text('PROJECT THEME:', 170, metaBoxY + 4.5);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(30, 41, 59);
-    doc.text(team.theme?.name || team.projectTheme || 'Open Innovation', 202, metaBoxY + 4.5);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(14, 56, 104);
-    doc.text('PROJECT MENTOR:', 170, metaBoxY + 9);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(30, 41, 59);
-    doc.text(`${team.mentorName} (PH: ${team.mentorContact || '-'})`, 202, metaBoxY + 9);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(14, 56, 104);
-    doc.text('EVALUATING JUDGE:', 170, metaBoxY + 13.5);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(30, 41, 59);
-    doc.text('______________________________', 202, metaBoxY + 13.5);
+    doc.setTextColor(50, 50, 50);
+    doc.text('____________________', 238, metaBoxY + 6.1);
 
     // 20-Sub-Criteria Scoring Grid
     const tableRows = [];
@@ -893,9 +842,8 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
 
   const tableRows = teamsList.map((team, idx) => [
     String(idx + 1),
-    team.teamCode || team.submissionCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
-    team.projectTitle,
-    team.instituteName,
+    team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
+    String(team.projectTitle || '').toUpperCase(),
     '', // Param 1 (out of 15)
     '', // Param 2 (out of 15)
     '', // Param 3 (out of 10)
@@ -912,9 +860,8 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
     head: [
       [
         { content: 'Sr.', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Submission\nCode', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Project Title', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Participating Institute', styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Team\nCode', styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Project Title of Innovation', styles: { halign: 'center', valign: 'middle' } },
         { content: 'Param 1\n(15)', styles: { halign: 'center', valign: 'middle' } },
         { content: 'Param 2\n(15)', styles: { halign: 'center', valign: 'middle' } },
         { content: 'Param 3\n(10)', styles: { halign: 'center', valign: 'middle' } },
@@ -942,17 +889,16 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
       cellPadding: { top: 2, bottom: 2, left: 1.5, right: 1.5 }
     },
     columnStyles: {
-      0: { cellWidth: 8, halign: 'center', fontStyle: 'bold' },
-      1: { cellWidth: 26, fontStyle: 'bold' },
-      2: { cellWidth: 65, fontStyle: 'bold' },
-      3: { cellWidth: 56 },
-      4: { cellWidth: 16, halign: 'center' },
-      5: { cellWidth: 16, halign: 'center' },
-      6: { cellWidth: 16, halign: 'center' },
-      7: { cellWidth: 16, halign: 'center' },
-      8: { cellWidth: 18, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
-      9: { cellWidth: 18, halign: 'center', fontStyle: 'bold' },
-      10: { cellWidth: 24, halign: 'center' }
+      0: { cellWidth: 9, halign: 'center', fontStyle: 'bold' },
+      1: { cellWidth: 26, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
+      2: { cellWidth: 104, fontStyle: 'bold' },
+      3: { cellWidth: 18, halign: 'center' },
+      4: { cellWidth: 18, halign: 'center' },
+      5: { cellWidth: 18, halign: 'center' },
+      6: { cellWidth: 18, halign: 'center' },
+      7: { cellWidth: 22, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
+      8: { cellWidth: 18, halign: 'center', fontStyle: 'bold' },
+      9: { cellWidth: 28, halign: 'center' }
     }
   });
 
