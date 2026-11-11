@@ -566,9 +566,19 @@ export const JuryRubricsSection = ({
                     <th rowSpan={2} className="py-2.5 px-2 w-24 border-r border-blue-900 align-middle">
                       Team Code
                     </th>
-                    <th rowSpan={2} className="py-2.5 px-3 min-w-[200px] border-r border-blue-900 align-middle text-left">
+                    {sheetVariant !== 'individual' && (
+                      <th rowSpan={2} className="py-2.5 px-3 min-w-[160px] border-r border-blue-900 align-middle text-left">
+                        Name of Institution
+                      </th>
+                    )}
+                    <th rowSpan={2} className={`py-2.5 px-3 ${sheetVariant === 'individual' ? 'min-w-[260px]' : 'min-w-[180px]'} border-r border-blue-900 align-middle text-left`}>
                       Project Title of Innovation
                     </th>
+                    {sheetVariant !== 'individual' && (
+                      <th rowSpan={2} className="py-2.5 px-3 min-w-[180px] border-r border-blue-900 align-middle text-left">
+                        Team Details (Mentor &amp; Students)
+                      </th>
+                    )}
                     <th colSpan={5} className="py-2 px-1 border-r border-blue-900 bg-[#0e3868]">
                       1. Problem Understanding (15M)
                     </th>
@@ -626,7 +636,7 @@ export const JuryRubricsSection = ({
                 <tbody className="divide-y divide-slate-200">
                   {formattedTeams.length === 0 ? (
                     <tr>
-                      <td colSpan={26} className="p-8 text-center text-slate-400 font-semibold">
+                      <td colSpan={sheetVariant !== 'individual' ? 28 : 26} className="p-8 text-center text-slate-400 font-semibold">
                         No projects registered yet.
                       </td>
                     </tr>
@@ -659,10 +669,29 @@ export const JuryRubricsSection = ({
                             </span>
                           </td>
 
+                          {/* Name of Institution (Sheet 1 & Sheet 2) */}
+                          {sheetVariant !== 'individual' && (
+                            <td className="py-2 px-3 border-r border-slate-200 font-bold text-slate-800 text-[11px] uppercase leading-snug">
+                              {team.instituteName}
+                            </td>
+                          )}
+
                           {/* Project Title */}
                           <td className="py-2.5 px-3 border-r border-slate-200 font-extrabold text-slate-900 text-xs uppercase leading-snug">
                             {team.projectTitle}
                           </td>
+
+                          {/* Team Details: Mentor & Students (Sheet 1 & Sheet 2) */}
+                          {sheetVariant !== 'individual' && (
+                            <td className="py-2 px-3 border-r border-slate-200 text-slate-700 text-[10.5px] leading-tight">
+                              <div className="font-extrabold text-blue-950">
+                                Mentor: <span className="font-semibold text-slate-800">{team.mentorName || '-'}</span>
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                                Students: <span className="text-slate-700">{(team.students || []).map((s) => s.studentName).join(', ') || '-'}</span>
+                              </div>
+                            </td>
+                          )}
 
                           {/* 20 Sub-Criteria Score Cells */}
                           {RUBRICS_FLAT_LIST.map((sp) => {

@@ -826,11 +826,11 @@ export const generateBatchAllTeamsScoreSheetsPdf = (teamsList = [], filename = n
 /**
  * Internal helper to render the Master Scoring Table page (Page 1) into a jsPDF doc.
  * Supports 3 Sheet Variants:
- * 1. 'all_seven': Full Jury Board (7 Signatures: Chairperson + 4 Core + 2 Reserve)
- * 2. 'core_only': Core Jury Board Only (5 Signatures: Chairperson + 4 Core)
- * 3. 'individual': Individual Evaluator Scoring Sheet (Evaluator Name & Signature block)
+ * 1. 'all_seven': Full Jury Board (Includes Institute Name, Project Title & Team Details [Mentor & Students] + 7 Jury Signatures)
+ * 2. 'core_only': Core Jury Board Only (Includes Institute Name, Project Title & Team Details [Mentor & Students] + 5 Core Jury Signatures)
+ * 3. 'individual': Individual Evaluator Scoring Sheet (Anonymous/blind format: only Team Code & Project Title for unbiased scoring)
  *
- * NOTE: The old last column ('Jury Sign') is removed, leaving 25 clean columns ending with Rank.
+ * NOTE: Both Sheet 1 and Sheet 2 fit all 17 teams, institute, team details, 20 criteria, and signatures on Page 1!
  * NOTE: Prominent high-contrast reference note box rendered inside printable page frame.
  */
 const renderMasterMatrixPage = (
@@ -844,16 +844,19 @@ const renderMasterMatrixPage = (
   const pageHeight = 210;
   const margin = 7;
 
+  // Determine if this sheet variant displays full Institute Name and Team Details (Mentor & Students)
+  const hasInstituteAndTeam = mode === 'all_seven' || mode === 'core_only';
+
   // Set appropriate header banner title according to mode
   let bannerTitle = 'Official Master Jury Evaluation & Scoring Matrix (Full Jury Board • 7 Members)';
-  let subtitle = 'Cluster-Level Competition – 20 Sub-Criteria Comprehensive Scoring (Max 50 Marks)';
+  let subtitle = 'Cluster-Level Competition – 20 Sub-Criteria Comprehensive Scoring with Institute & Team Details';
 
   if (mode === 'core_only') {
     bannerTitle = 'Official Master Jury Evaluation & Scoring Matrix (Core Jury Board • 5 Members)';
-    subtitle = 'Cluster-Level Competition – Official Core Board Evaluation Matrix (Max 50 Marks)';
+    subtitle = 'Cluster-Level Competition – Core Board Decision Matrix with Institute & Team Details';
   } else if (mode === 'individual') {
     bannerTitle = 'Official Individual Jury Evaluator Scoring Matrix (Max 50 Marks)';
-    subtitle = 'Cluster-Level Competition – Confidential Individual Evaluator Sheet (All 17 Projects)';
+    subtitle = 'Cluster-Level Competition – Confidential Individual Evaluator Sheet (Team Code & Project Title)';
   }
 
   const startY = renderPdfHeader(doc, bannerTitle, subtitle, true);
@@ -882,119 +885,219 @@ const renderMasterMatrixPage = (
     tableStartY = evalBarY + 6.0;
   }
 
-  // Table Body Rows (25 columns: Sr, Team Code, Project Title, 20 sub-criteria, Total, Rank)
-  // Last column (Jury Sign) removed as requested
-  const tableRows = teamsList.map((team, idx) => [
-    String(idx + 1),
-    team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
-    String(team.projectTitle || '').toUpperCase(),
-    '', '', '', '', '', // 1.1 to 1.5
-    '', '', '', '', '', // 2.1 to 2.5
-    '', '', '', '', '', // 3.1 to 3.5
-    '', '', '', '', '', // 4.1 to 4.5
-    '', // Total (50)
-    ''  // Rank
-  ]);
+  // Build table rows
+  const tableRows = teamsList.map((team, idx) => {
+    const studentNames = (team.students || []).map((s) => s.studentName).join(', ');
+    const mentorStr = team.mentorName || '-';
+    const teamDetails = `Mentor: ${mentorStr}\nStudents: ${studentNames || '-'}`;
+
+    if (hasInstituteAndTeam) {
+      return [
+        String(idx + 1),
+        team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
+        String(team.instituteName || '').toUpperCase(),
+        String(team.projectTitle || '').toUpperCase(),
+        teamDetails,
+        '', '', '', '', '', // 1.1 to 1.5
+        '', '', '', '', '', // 2.1 to 2.5
+        '', '', '', '', '', // 3.1 to 3.5
+        '', '', '', '', '', // 4.1 to 4.5
+        '', // Total (50)
+        ''  // Rank
+      ];
+    }
+
+    // Individual Evaluator (blind / anonymous format with only Team Code & Project Title)
+    return [
+      String(idx + 1),
+      team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
+      String(team.projectTitle || '').toUpperCase(),
+      '', '', '', '', '', // 1.1 to 1.5
+      '', '', '', '', '', // 2.1 to 2.5
+      '', '', '', '', '', // 3.1 to 3.5
+      '', '', '', '', '', // 4.1 to 4.5
+      '', // Total (50)
+      ''  // Rank
+    ];
+  });
+
+  // Build table header
+  const tableHead = hasInstituteAndTeam
+    ? [
+        [
+          { content: 'Sr.', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Team\nCode', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Name of Institution\n(Polytechnic / College)', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Project Title of Innovation', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Team Details\n(Mentor & Students)', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: '1. Problem (15M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [14, 56, 104] } },
+          { content: '2. Punjab Fit (15M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [11, 45, 84] } },
+          { content: '3. Innovation (10M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [14, 56, 104] } },
+          { content: '4. Prototype (10M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [11, 45, 84] } },
+          { content: 'Total\n(50)', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [10, 37, 64] } },
+          { content: 'Rank', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } }
+        ],
+        [
+          { content: '1.1\n(3)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '1.2\n(3)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '1.3\n(3)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '1.4\n(3)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '1.5\n(3)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '2.1\n(3)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '2.2\n(3)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '2.3\n(3)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '2.4\n(3)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '2.5\n(3)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '3.1\n(2)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '3.2\n(2)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '3.3\n(2)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '3.4\n(2)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '3.5\n(2)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '4.1\n(2)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '4.2\n(2)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '4.3\n(2)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '4.4\n(2)', styles: { halign: 'center', fontSize: 5.0 } },
+          { content: '4.5\n(2)', styles: { halign: 'center', fontSize: 5.0 } }
+        ]
+      ]
+    : [
+        [
+          { content: 'Sr.', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Team\nCode', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Project Title of Innovation', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: '1. Problem Understanding (15M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [14, 56, 104] } },
+          { content: '2. Punjab Fit & Use (15M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [11, 45, 84] } },
+          { content: '3. Polytechnic Innovation (10M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [14, 56, 104] } },
+          { content: '4. Prototype Plan (10M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [11, 45, 84] } },
+          { content: 'Total\n(50)', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [10, 37, 64] } },
+          { content: 'Rank', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } }
+        ],
+        [
+          { content: '1.1\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '1.2\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '1.3\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '1.4\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '1.5\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '2.1\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '2.2\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '2.3\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '2.4\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '2.5\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '3.1\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '3.2\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '3.3\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '3.4\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '3.5\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '4.1\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '4.2\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '4.3\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '4.4\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+          { content: '4.5\n(2)', styles: { halign: 'center', fontSize: 5.2 } }
+        ]
+      ];
+
+  // Column width styling
+  const tableColumnStyles = hasInstituteAndTeam
+    ? {
+        0: { cellWidth: 6, halign: 'center', fontStyle: 'bold' },
+        1: { cellWidth: 13, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
+        2: { cellWidth: 32, fontStyle: 'bold' },
+        3: { cellWidth: 42, fontStyle: 'bold' },
+        4: { cellWidth: 34 },
+        5: { cellWidth: 6.8, halign: 'center' },
+        6: { cellWidth: 6.8, halign: 'center' },
+        7: { cellWidth: 6.8, halign: 'center' },
+        8: { cellWidth: 6.8, halign: 'center' },
+        9: { cellWidth: 6.8, halign: 'center' },
+        10: { cellWidth: 6.8, halign: 'center' },
+        11: { cellWidth: 6.8, halign: 'center' },
+        12: { cellWidth: 6.8, halign: 'center' },
+        13: { cellWidth: 6.8, halign: 'center' },
+        14: { cellWidth: 6.8, halign: 'center' },
+        15: { cellWidth: 6.8, halign: 'center' },
+        16: { cellWidth: 6.8, halign: 'center' },
+        17: { cellWidth: 6.8, halign: 'center' },
+        18: { cellWidth: 6.8, halign: 'center' },
+        19: { cellWidth: 6.8, halign: 'center' },
+        20: { cellWidth: 6.8, halign: 'center' },
+        21: { cellWidth: 6.8, halign: 'center' },
+        22: { cellWidth: 6.8, halign: 'center' },
+        23: { cellWidth: 6.8, halign: 'center' },
+        24: { cellWidth: 6.8, halign: 'center' },
+        25: { cellWidth: 11, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
+        26: { cellWidth: 9, halign: 'center', fontStyle: 'bold' }
+      }
+    : {
+        0: { cellWidth: 7.5, halign: 'center', fontStyle: 'bold' },
+        1: { cellWidth: 17.5, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
+        2: { cellWidth: 72, fontStyle: 'bold' },
+        3: { cellWidth: 8, halign: 'center' },
+        4: { cellWidth: 8, halign: 'center' },
+        5: { cellWidth: 8, halign: 'center' },
+        6: { cellWidth: 8, halign: 'center' },
+        7: { cellWidth: 8, halign: 'center' },
+        8: { cellWidth: 8, halign: 'center' },
+        9: { cellWidth: 8, halign: 'center' },
+        10: { cellWidth: 8, halign: 'center' },
+        11: { cellWidth: 8, halign: 'center' },
+        12: { cellWidth: 8, halign: 'center' },
+        13: { cellWidth: 8, halign: 'center' },
+        14: { cellWidth: 8, halign: 'center' },
+        15: { cellWidth: 8, halign: 'center' },
+        16: { cellWidth: 8, halign: 'center' },
+        17: { cellWidth: 8, halign: 'center' },
+        18: { cellWidth: 8, halign: 'center' },
+        19: { cellWidth: 8, halign: 'center' },
+        20: { cellWidth: 8, halign: 'center' },
+        21: { cellWidth: 8, halign: 'center' },
+        22: { cellWidth: 8, halign: 'center' },
+        23: { cellWidth: 14, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
+        24: { cellWidth: 12, halign: 'center', fontStyle: 'bold' }
+      };
 
   autoTable(doc, {
     startY: tableStartY,
     margin: { left: 7, right: 7 },
     tableWidth: 283,
-    head: [
-      [
-        { content: 'Sr.', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Team\nCode', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Project Title of Innovation', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
-        { content: '1. Problem Understanding (15M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [14, 56, 104] } },
-        { content: '2. Punjab Fit & Use (15M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [11, 45, 84] } },
-        { content: '3. Polytechnic Innovation (10M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [14, 56, 104] } },
-        { content: '4. Prototype Plan (10M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [11, 45, 84] } },
-        { content: 'Total\n(50)', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [10, 37, 64] } },
-        { content: 'Rank', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } }
-      ],
-      [
-        { content: '1.1\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '1.2\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '1.3\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '1.4\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '1.5\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '2.1\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '2.2\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '2.3\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '2.4\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '2.5\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '3.1\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '3.2\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '3.3\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '3.4\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '3.5\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '4.1\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '4.2\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '4.3\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '4.4\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
-        { content: '4.5\n(2)', styles: { halign: 'center', fontSize: 5.2 } }
-      ]
-    ],
+    head: tableHead,
     body: tableRows,
     theme: 'grid',
     headStyles: {
       fillColor: [14, 56, 104],
       textColor: [255, 255, 255],
-      fontSize: 6.2,
+      fontSize: hasInstituteAndTeam ? 5.6 : 6.2,
       fontStyle: 'bold',
       lineWidth: 0.15,
       lineColor: [148, 163, 184],
-      cellPadding: { top: 1.1, bottom: 1.1, left: 0.5, right: 0.5 }
+      cellPadding: hasInstituteAndTeam
+        ? { top: 0.9, bottom: 0.9, left: 0.4, right: 0.4 }
+        : { top: 1.1, bottom: 1.1, left: 0.5, right: 0.5 }
     },
     bodyStyles: {
-      fontSize: 6.5,
+      fontSize: hasInstituteAndTeam ? 5.3 : 6.5,
       lineColor: [203, 213, 225],
       lineWidth: 0.15,
       textColor: [15, 23, 42],
-      cellPadding: { top: 1.25, bottom: 1.25, left: 0.6, right: 0.6 }
+      cellPadding: hasInstituteAndTeam
+        ? { top: 0.75, bottom: 0.75, left: 0.5, right: 0.5 }
+        : { top: 1.25, bottom: 1.25, left: 0.6, right: 0.6 }
     },
     alternateRowStyles: {
       fillColor: [248, 250, 252]
     },
-    columnStyles: {
-      0: { cellWidth: 7.5, halign: 'center', fontStyle: 'bold' },
-      1: { cellWidth: 17.5, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
-      2: { cellWidth: 72, fontStyle: 'bold' }, // Expanded from 59mm for comfortable title reading
-      3: { cellWidth: 8, halign: 'center' },
-      4: { cellWidth: 8, halign: 'center' },
-      5: { cellWidth: 8, halign: 'center' },
-      6: { cellWidth: 8, halign: 'center' },
-      7: { cellWidth: 8, halign: 'center' },
-      8: { cellWidth: 8, halign: 'center' },
-      9: { cellWidth: 8, halign: 'center' },
-      10: { cellWidth: 8, halign: 'center' },
-      11: { cellWidth: 8, halign: 'center' },
-      12: { cellWidth: 8, halign: 'center' },
-      13: { cellWidth: 8, halign: 'center' },
-      14: { cellWidth: 8, halign: 'center' },
-      15: { cellWidth: 8, halign: 'center' },
-      16: { cellWidth: 8, halign: 'center' },
-      17: { cellWidth: 8, halign: 'center' },
-      18: { cellWidth: 8, halign: 'center' },
-      19: { cellWidth: 8, halign: 'center' },
-      20: { cellWidth: 8, halign: 'center' },
-      21: { cellWidth: 8, halign: 'center' },
-      22: { cellWidth: 8, halign: 'center' },
-      23: { cellWidth: 14, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
-      24: { cellWidth: 12, halign: 'center', fontStyle: 'bold' }
-    }
+    columnStyles: tableColumnStyles
   });
 
-  const finalY = doc.lastAutoTable.finalY + 2.5;
+  const finalY = doc.lastAutoTable.finalY + 2.0;
 
   // ==============================================================================
   // JURY SIGNATURE SECTION ACCORDING TO SHEET VARIANT
   // ==============================================================================
   if (mode === 'all_seven') {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.8);
+    doc.setFontSize(6.5);
     doc.setTextColor(14, 56, 104);
-    doc.text('OFFICIAL JURY BOARD ENDORSEMENT & FINAL RANKING VALIDATION (ALL 7 MEMBERS):', 7, finalY + 2.5);
+    doc.text('OFFICIAL JURY BOARD ENDORSEMENT & FINAL RANKING VALIDATION (ALL 7 MEMBERS):', 7, finalY + 2.2);
 
     const sigs = [
       'Chairperson, Jury Board',
@@ -1012,16 +1115,16 @@ const renderMasterMatrixPage = (
       const x = 7 + sIdx * (boxW + gap);
       doc.setDrawColor(180, 180, 180);
       doc.setLineDashPattern([1, 1], 0);
-      doc.line(x, finalY + 11.5, x + boxW, finalY + 11.5);
+      doc.line(x, finalY + 8.5, x + boxW, finalY + 8.5);
       doc.setLineDashPattern([], 0);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(5.2);
+      doc.setFontSize(5.0);
       doc.setTextColor(50, 60, 80);
-      doc.text(sig, x + boxW / 2, finalY + 14.5, { align: 'center' });
+      doc.text(sig, x + boxW / 2, finalY + 11.2, { align: 'center' });
     });
   } else if (mode === 'core_only') {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
+    doc.setFontSize(6.8);
     doc.setTextColor(14, 56, 104);
     doc.text('CORE EVALUATION JURY BOARD ENDORSEMENT & CLUSTER RANKING VALIDATION (5 CORE MEMBERS):', 7, finalY + 2.5);
 
@@ -1039,12 +1142,12 @@ const renderMasterMatrixPage = (
       const x = 7 + sIdx * (boxW + gap);
       doc.setDrawColor(180, 180, 180);
       doc.setLineDashPattern([1, 1], 0);
-      doc.line(x, finalY + 12, x + boxW, finalY + 12);
+      doc.line(x, finalY + 9.5, x + boxW, finalY + 9.5);
       doc.setLineDashPattern([], 0);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(5.6);
+      doc.setFontSize(5.4);
       doc.setTextColor(50, 60, 80);
-      doc.text(sig, x + boxW / 2, finalY + 15.5, { align: 'center' });
+      doc.text(sig, x + boxW / 2, finalY + 12.5, { align: 'center' });
     });
   } else if (mode === 'individual') {
     doc.setFont('helvetica', 'bold');
@@ -1350,29 +1453,89 @@ export const exportRubricsToExcel = (teamsList = []) => {
     'Cluster Rank': ''
   });
 
-  // Tab 1: Master Scoring Matrix - Full Board (All 7 Members)
-  const rowsAll7 = (teamsList || []).map((team, idx) => ({
-    ...baseCriteriaRow(team, idx),
-    'Chairperson Sign': '',
-    'Jury Member 1 Sign': '',
-    'Jury Member 2 Sign': '',
-    'Jury Member 3 Sign': '',
-    'Jury Member 4 Sign': '',
-    'Reserve 1 Sign': '',
-    'Reserve 2 Sign': ''
-  }));
+  // Tab 1: Master Scoring Matrix - Full Board (All 7 Members with Institute & Team Details)
+  const rowsAll7 = (teamsList || []).map((team, idx) => {
+    const studentNames = (team.students || []).map((s) => s.studentName).join(', ');
+    return {
+      'Sr. No.': idx + 1,
+      'Team Code': team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
+      'Name of Institution': String(team.instituteName || '').toUpperCase(),
+      'Project Title of Innovation': team.projectTitle,
+      'Faculty Mentor': `${team.mentorName || '-'}${team.mentorContact ? ` (${team.mentorContact})` : ''}`,
+      'Participating Students': studentNames || '-',
+      '1.1 Clarity of problem definition (3)': '',
+      '1.2 Identification of root causes (3)': '',
+      '1.3 Understanding affected stakeholders (3)': '',
+      '1.4 Existing solutions and gaps (3)': '',
+      '1.5 Evidence and validation (3)': '',
+      '2.1 Relevance to Punjab needs (3)': '',
+      '2.2 Potential benefits to users (3)': '',
+      '2.3 Suitability to local conditions (3)': '',
+      '2.4 Affordability and accessibility (3)': '',
+      '2.5 Adoption and wider applicability (3)': '',
+      '3.1 Originality of proposed idea (2)': '',
+      '3.2 Creative application of tech (2)': '',
+      '3.3 Technical ingenuity & design (2)': '',
+      '3.4 Resource-efficient innovation (2)': '',
+      '3.5 Distinctiveness & value addition (2)': '',
+      '4.1 Prototype design clarity (2)': '',
+      '4.2 Technical feasibility (2)': '',
+      '4.3 Resources & materials (2)': '',
+      '4.4 Development timeline (2)': '',
+      '4.5 Testing & improvement plan (2)': '',
+      'Total Score (50)': '',
+      'Cluster Rank': '',
+      'Chairperson Sign': '',
+      'Jury Member 1 Sign': '',
+      'Jury Member 2 Sign': '',
+      'Jury Member 3 Sign': '',
+      'Jury Member 4 Sign': '',
+      'Reserve 1 Sign': '',
+      'Reserve 2 Sign': ''
+    };
+  });
   const wsAll7 = XLSX.utils.json_to_sheet(rowsAll7);
   XLSX.utils.book_append_sheet(wb, wsAll7, 'Full Board (7 Jury)');
 
-  // Tab 2: Master Scoring Matrix - Core Board Only (5 Members)
-  const rowsCore = (teamsList || []).map((team, idx) => ({
-    ...baseCriteriaRow(team, idx),
-    'Chairperson Sign': '',
-    'Jury Member 1 Sign': '',
-    'Jury Member 2 Sign': '',
-    'Jury Member 3 Sign': '',
-    'Jury Member 4 Sign': ''
-  }));
+  // Tab 2: Master Scoring Matrix - Core Board Only (5 Members with Institute & Team Details)
+  const rowsCore = (teamsList || []).map((team, idx) => {
+    const studentNames = (team.students || []).map((s) => s.studentName).join(', ');
+    return {
+      'Sr. No.': idx + 1,
+      'Team Code': team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
+      'Name of Institution': String(team.instituteName || '').toUpperCase(),
+      'Project Title of Innovation': team.projectTitle,
+      'Faculty Mentor': `${team.mentorName || '-'}${team.mentorContact ? ` (${team.mentorContact})` : ''}`,
+      'Participating Students': studentNames || '-',
+      '1.1 Clarity of problem definition (3)': '',
+      '1.2 Identification of root causes (3)': '',
+      '1.3 Understanding affected stakeholders (3)': '',
+      '1.4 Existing solutions and gaps (3)': '',
+      '1.5 Evidence and validation (3)': '',
+      '2.1 Relevance to Punjab needs (3)': '',
+      '2.2 Potential benefits to users (3)': '',
+      '2.3 Suitability to local conditions (3)': '',
+      '2.4 Affordability and accessibility (3)': '',
+      '2.5 Adoption and wider applicability (3)': '',
+      '3.1 Originality of proposed idea (2)': '',
+      '3.2 Creative application of tech (2)': '',
+      '3.3 Technical ingenuity & design (2)': '',
+      '3.4 Resource-efficient innovation (2)': '',
+      '3.5 Distinctiveness & value addition (2)': '',
+      '4.1 Prototype design clarity (2)': '',
+      '4.2 Technical feasibility (2)': '',
+      '4.3 Resources & materials (2)': '',
+      '4.4 Development timeline (2)': '',
+      '4.5 Testing & improvement plan (2)': '',
+      'Total Score (50)': '',
+      'Cluster Rank': '',
+      'Chairperson Sign': '',
+      'Jury Member 1 Sign': '',
+      'Jury Member 2 Sign': '',
+      'Jury Member 3 Sign': '',
+      'Jury Member 4 Sign': ''
+    };
+  });
   const wsCore = XLSX.utils.json_to_sheet(rowsCore);
   XLSX.utils.book_append_sheet(wb, wsCore, 'Core Board (5 Jury)');
 
