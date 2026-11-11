@@ -660,36 +660,39 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
 
               {/* FOOTER & OFFICIAL SIGN-OFF SECTION */}
               <div className="mt-4 pt-3 border-t-2 border-[#0e3868]/40">
-                <div className="flex items-end justify-between text-xs text-slate-700 px-2 pb-2">
+                <div className="flex items-start justify-between text-xs text-slate-700 px-2 pb-2">
                   {/* Left Sign */}
-                  <div className="text-center w-60">
+                  <div className="text-center w-64">
                     <div className="h-10 border-b border-dashed border-slate-400"></div>
-                    <span className="font-bold text-[11px] text-slate-900 block mt-1">
-                      Faculty Mentor Signature
+                    <span className="font-bold text-[11px] text-slate-900 block mt-1.5">
+                      Faculty Mentor
                     </span>
-                    <span className="text-[9.5px] text-slate-500 block">
+                    <span className="text-[9.5px] text-slate-500 block leading-tight mt-0.5">
                       (Accompanying Official / Mentor)
                     </span>
                   </div>
 
                   {/* Center Sign */}
-                  <div className="text-center w-60">
+                  <div className="text-center w-64">
                     <div className="h-10 border-b border-dashed border-slate-400"></div>
-                    <span className="font-bold text-[11px] text-slate-900 block mt-1">
-                      Jury / Evaluator Signature
+                    <span className="font-bold text-[11px] text-slate-900 block mt-1.5">
+                      Nodal Officer
                     </span>
-                    <span className="text-[9.5px] text-slate-500 block">
-                      (Competition Evaluation Committee)
+                    <span className="text-[9.5px] text-slate-600 font-medium block leading-tight mt-0.5">
+                      Bathinda Cluster
                     </span>
                   </div>
 
                   {/* Right Sign */}
-                  <div className="text-center w-64">
+                  <div className="text-center w-72">
                     <div className="h-10 border-b border-dashed border-slate-400"></div>
-                    <span className="font-bold text-[11px] text-slate-900 block mt-1">
-                      Cluster Coordinator / Principal
+                    <span className="font-bold text-[11px] text-slate-900 block mt-1.5">
+                      Principal
                     </span>
-                    <span className="text-[9.5px] text-slate-500 block">
+                    <span className="text-[9.5px] text-slate-600 font-medium block leading-tight mt-0.5">
+                      Host Institute, Bathinda Cluster
+                    </span>
+                    <span className="text-[9px] text-slate-500 block leading-tight">
                       Government Polytechnic College, Bathinda
                     </span>
                   </div>

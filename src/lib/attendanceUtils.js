@@ -476,27 +476,38 @@ export const generateVectorAttendancePdf = (
     });
 
     // Footer Signatures
-    const footerY = pageHeight - margin - 15;
+    const footerY = pageHeight - margin - 16;
     doc.setDrawColor(180, 180, 180);
     doc.setLineDashPattern([1.5, 1.5], 0);
-    doc.line(margin + 12, footerY, margin + 60, footerY);
-    doc.line(pageWidth / 2 - 25, footerY, pageWidth / 2 + 25, footerY);
-    doc.line(pageWidth - margin - 60, footerY, pageWidth - margin - 12, footerY);
+    doc.line(margin + 12, footerY, margin + 64, footerY);
+    doc.line(pageWidth / 2 - 27, footerY, pageWidth / 2 + 27, footerY);
+    doc.line(pageWidth - margin - 64, footerY, pageWidth - margin - 12, footerY);
     doc.setLineDashPattern([], 0);
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(30, 41, 59);
-    doc.text('Faculty Mentor Signature', margin + 36, footerY + 3.5, { align: 'center' });
-    doc.text('Jury / Evaluator Signature', pageWidth / 2, footerY + 3.5, { align: 'center' });
-    doc.text('Cluster Coordinator / Principal', pageWidth - margin - 36, footerY + 3.5, { align: 'center' });
+    const leftX = margin + 38;
+    const centerX = pageWidth / 2;
+    const rightX = pageWidth - margin - 38;
 
+    // Line 1: Primary Titles
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.8);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Faculty Mentor', leftX, footerY + 3.8, { align: 'center' });
+    doc.text('Nodal Officer', centerX, footerY + 3.8, { align: 'center' });
+    doc.text('Principal', rightX, footerY + 3.8, { align: 'center' });
+
+    // Line 2: Subtitles / Role Affiliations
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6);
-    doc.setTextColor(100, 100, 100);
-    doc.text('(Accompanying Official / Mentor)', margin + 36, footerY + 6.5, { align: 'center' });
-    doc.text('(Competition Evaluation Committee)', pageWidth / 2, footerY + 6.5, { align: 'center' });
-    doc.text(EVENT_DETAILS.hostInstitute, pageWidth - margin - 36, footerY + 6.5, { align: 'center' });
+    doc.setFontSize(6.2);
+    doc.setTextColor(71, 85, 105);
+    doc.text('(Accompanying Official / Mentor)', leftX, footerY + 7.0, { align: 'center' });
+    doc.text('Bathinda Cluster', centerX, footerY + 7.0, { align: 'center' });
+    doc.text('Host Institute, Bathinda Cluster', rightX, footerY + 7.0, { align: 'center' });
+
+    // Line 3: College Name for Host Institute
+    doc.setFontSize(5.8);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Government Polytechnic College, Bathinda', rightX, footerY + 10.0, { align: 'center' });
 
     // Sub-footer
     doc.setFontSize(6.5);
