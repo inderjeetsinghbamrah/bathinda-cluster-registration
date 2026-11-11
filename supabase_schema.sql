@@ -102,3 +102,54 @@ USING (true);
 CREATE INDEX IF NOT EXISTS idx_submissions_code ON cluster_submissions(submission_code);
 CREATE INDEX IF NOT EXISTS idx_teams_submission_id ON competition_teams(submission_id);
 CREATE INDEX IF NOT EXISTS idx_students_team_id ON competition_students(team_id);
+
+-- ==============================================================================
+-- 8. Create the Official Evaluation Jury & Judges Table
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS competition_judges (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    slot_key VARCHAR(50) UNIQUE NOT NULL, -- 'chairperson_1', 'jury_member_1'..'jury_member_4', 'reserve_member_1'..'reserve_member_2'
+    role VARCHAR(50) NOT NULL,            -- 'CHAIRPERSON', 'JURY_MEMBER', 'RESERVE_JURY_MEMBER'
+    slot_number INT NOT NULL,             -- 1 for Chairperson, 1..4 for Jury Members, 1..2 for Reserve Members
+    name VARCHAR(255) NOT NULL,
+    contact VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    designation VARCHAR(255) NOT NULL,
+    organisation VARCHAR(255) NOT NULL,
+    organisation_location VARCHAR(255) NOT NULL,
+    domain VARCHAR(150) NOT NULL,         -- SENIOR EXTERNAL ACADEMIC, SENIOR TECHNICAL LEADER, etc.
+    relevant_background TEXT
+);
+
+-- Enable RLS for competition_judges
+ALTER TABLE competition_judges ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow anon view judges" ON competition_judges;
+CREATE POLICY "Allow anon view judges"
+ON competition_judges FOR SELECT
+TO anon, authenticated
+USING (true);
+
+DROP POLICY IF EXISTS "Allow anon insert judges" ON competition_judges;
+CREATE POLICY "Allow anon insert judges"
+ON competition_judges FOR INSERT
+TO anon, authenticated
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow anon update judges" ON competition_judges;
+CREATE POLICY "Allow anon update judges"
+ON competition_judges FOR UPDATE
+TO anon, authenticated
+USING (true);
+
+DROP POLICY IF EXISTS "Allow anon delete judges" ON competition_judges;
+CREATE POLICY "Allow anon delete judges"
+ON competition_judges FOR DELETE
+TO anon, authenticated
+USING (true);
+
+CREATE INDEX IF NOT EXISTS idx_judges_slot_key ON competition_judges(slot_key);
+CREATE INDEX IF NOT EXISTS idx_judges_role ON competition_judges(role);
+

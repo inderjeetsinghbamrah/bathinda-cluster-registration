@@ -27,12 +27,14 @@ import {
   ClipboardCheck,
   FileText,
   ArrowUpDown,
-  Pencil
+  Pencil,
+  Award
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AttendanceSheet } from './AttendanceSheet';
 import { ReorderTableView } from './ReorderTableView';
 import { EditSubmissionModal } from './EditSubmissionModal';
+import { JudgesPanel } from './JudgesPanel';
 
 export const AdminPortal = () => {
   const [token, setToken] = useState(() => localStorage.getItem('cluster_admin_token') || '');
@@ -645,8 +647,8 @@ export const AdminPortal = () => {
         </div>
 
         {/* Overview Stats Cards - Only visible in institutes/roster views */}
-        {viewMode !== 'attendance' && viewMode !== 'reorder' && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 no-print">
+        {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 no-print">
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
                 <Building2 className="w-6 h-6" />
@@ -676,11 +678,30 @@ export const AdminPortal = () => {
                 <span className="text-2xl sm:text-3xl font-black text-slate-800">{totalStudents}</span>
               </div>
             </div>
+
+            <div
+              onClick={() => setViewMode('judges')}
+              className="bg-white p-4 sm:p-5 rounded-2xl border border-amber-200 hover:border-amber-400 shadow-2xs flex items-center justify-between gap-3 cursor-pointer transition hover:bg-amber-50/40"
+              title="Click to configure Evaluation Jury Panel & Judges"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0">
+                  <Award className="w-6 h-6 text-amber-600" />
+                </div>
+                <div>
+                  <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Jury Panel</span>
+                  <span className="text-xl sm:text-2xl font-black text-slate-800">7 Slots</span>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-1 rounded-xl">
+                Open &rarr;
+              </span>
+            </div>
           </div>
         )}
 
         {/* Toolbar: Search, View Switcher & Action Buttons - Only visible in institutes/roster views */}
-        {viewMode !== 'attendance' && viewMode !== 'reorder' && (
+        {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && (
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs mb-5 flex flex-wrap items-center justify-between gap-3 no-print">
             <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
               {/* Search box */}
@@ -739,11 +760,34 @@ export const AdminPortal = () => {
                   <ClipboardCheck className="w-3.5 h-3.5" />
                   <span>Attendance Sheet (PDF)</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('judges')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                    viewMode === 'judges'
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-amber-950 shadow-xs'
+                      : 'text-amber-800 hover:text-amber-950 hover:bg-amber-100/60'
+                  }`}
+                >
+                  <Award className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Jury Panel (7)</span>
+                </button>
               </div>
             </div>
 
             {/* Action buttons & Export */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Jury Panel Button */}
+              <button
+                type="button"
+                onClick={() => setViewMode('judges')}
+                className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 active:scale-95 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
+                title="Manage Evaluation Jury Board & Add Judges"
+              >
+                <Award className="w-4 h-4 text-amber-600" />
+                <span>Jury Panel (7)</span>
+              </button>
+
               {/* Reorder Table Shortcut Button */}
               <button
                 type="button"
@@ -820,7 +864,7 @@ export const AdminPortal = () => {
           </div>
         )}
 
-        {/* VIEW MODES: ATTENDANCE SHEET, REORDER TABLE, INSTITUTES GROUPED VIEW, OR MASTER ROSTER */}
+        {/* VIEW MODES: ATTENDANCE SHEET, REORDER TABLE, JURY PANEL, INSTITUTES GROUPED VIEW, OR MASTER ROSTER */}
         {viewMode === 'attendance' ? (
           <AttendanceSheet
             submissions={submissions}
@@ -841,6 +885,8 @@ export const AdminPortal = () => {
               if (sub) setEditingSubmission(sub);
             }}
           />
+        ) : viewMode === 'judges' ? (
+          <JudgesPanel onBack={() => setViewMode('institutes')} />
         ) : viewMode === 'institutes' ? (
           <div className="space-y-4">
             {/* Select all header */}

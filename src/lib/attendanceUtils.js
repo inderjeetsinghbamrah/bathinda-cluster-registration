@@ -136,30 +136,34 @@ export const formatAttendanceData = (
         let semester = s.semester || rawStudent?.semester || '-';
         return {
           studentOrder: s.student_order || sIdx + 1,
-          studentName: (s.student_name || '').trim(),
-          registrationNo: (s.registration_no || '').trim(),
-          department: s.department === 'Others' ? `${s.department} (${s.department_other || ''})` : (s.department || '-'),
-          semester: semester,
+          studentName: (s.student_name || '').trim().toUpperCase(),
+          registrationNo: (s.registration_no || '').trim().toUpperCase(),
+          department: (s.department === 'Others' ? `${s.department} (${s.department_other || ''})` : (s.department || '-')).trim().toUpperCase(),
+          semester: String(semester).trim().toUpperCase(),
           contact: s.contact_number || '',
           email: s.email || rawStudent?.email || ''
         };
       });
 
       const teamKey = `${sub.id}_${t.team_number || 1}`;
+      const themeDomain = getThemeDomain(t.project_theme, t.project_theme_other);
 
       formattedTeams.push({
         teamKey,
         submissionId: sub.id,
-        submissionCode: sub.submission_code,
+        submissionCode: (sub.submission_code || '').trim().toUpperCase(),
         createdAt: sub.created_at,
-        instituteName: (sub.institute_name || '').trim(),
-        principalName: (sub.principal_name || '').trim(),
+        instituteName: (sub.institute_name || '').trim().toUpperCase(),
+        principalName: (sub.principal_name || '').trim().toUpperCase(),
         principalContact: (sub.principal_contact || '').trim(),
         teamNumber: t.team_number || 1,
-        projectTitle: (t.project_title || '').trim(),
-        mentorName: (t.mentor_name || '').trim(),
+        projectTitle: (t.project_title || '').trim().toUpperCase(),
+        mentorName: (t.mentor_name || '').trim().toUpperCase(),
         mentorContact: sanitizeMentorContact(t.mentor_contact || ''),
-        theme: getThemeDomain(t.project_theme, t.project_theme_other),
+        theme: {
+          code: themeDomain.code,
+          name: themeDomain.name.trim().toUpperCase()
+        },
         students: formattedStudents
       });
     });
@@ -263,17 +267,17 @@ export const exportAttendanceToExcel = (teams = [], filename = '') => {
     t.students.forEach((s) => {
       excelRows.push({
         'Sr. No.': t.globalSrNo,
-        'Name of Institution': t.instituteName,
-        'Faculty Mentor': `${t.mentorName} (${t.mentorContact})`,
+        'Name of Institution': String(t.instituteName || '').toUpperCase(),
+        'Faculty Mentor': `${String(t.mentorName || '').toUpperCase()}${t.mentorContact ? ` (${t.mentorContact})` : ''}`,
         'Faculty Mentor Attendance': '', // Blank for physical signature
-        'Project Idea / Title of Innovation': t.projectTitle,
+        'Project Idea / Title of Innovation': String(t.projectTitle || '').toUpperCase(),
         'Thematic Domain Code': t.theme.code,
-        'Theme': t.theme.name,
+        'Theme': String(t.theme.name || '').toUpperCase(),
         'Student S.No.': s.studentOrder,
-        'Student Name': s.studentName,
-        'Roll No.': s.registrationNo,
-        'Branch / Dept': s.department,
-        'Semester': s.semester,
+        'Student Name': String(s.studentName || '').toUpperCase(),
+        'Roll No.': String(s.registrationNo || '').toUpperCase(),
+        'Branch / Dept': String(s.department || '').toUpperCase(),
+        'Semester': String(s.semester || '').toUpperCase(),
         'Attendance / Signature': '' // Blank for physical signature
       });
     });
@@ -418,19 +422,19 @@ export const generateVectorAttendancePdf = (
         if (isFirst) {
           row.push(
             { content: String(team.globalSrNo), rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
-            { content: team.instituteName, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
-            { content: `${team.mentorName}\n(${team.mentorContact})`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
+            { content: String(team.instituteName || '').toUpperCase(), rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
+            { content: `${String(team.mentorName || '').toUpperCase()}${team.mentorContact ? `\n(${team.mentorContact})` : ''}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
             { content: '', rowSpan: studentCount, styles: { minCellHeight: rowMinHeight, fillColor: [255, 255, 255] } },
-            { content: team.projectTitle, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
-            { content: `[${team.theme.code}]\n${team.theme.name}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } }
+            { content: String(team.projectTitle || '').toUpperCase(), rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
+            { content: `[${team.theme.code}]\n${String(team.theme.name || '').toUpperCase()}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } }
           );
         }
 
         row.push(
           { content: String(st.studentOrder), styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
-          { content: st.studentName, styles: { halign: 'left', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
-          { content: st.registrationNo, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
-          { content: st.semester, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
+          { content: String(st.studentName || '').toUpperCase(), styles: { halign: 'left', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
+          { content: String(st.registrationNo || '').toUpperCase(), styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
+          { content: String(st.semester || '').toUpperCase(), styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
           { content: '', styles: { minCellHeight: rowMinHeight, fillColor: [255, 255, 255] } }
         );
 

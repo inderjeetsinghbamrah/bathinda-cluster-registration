@@ -587,7 +587,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                                   {/* Institution Name */}
                                   <td
                                     rowSpan={studentCount}
-                                    className="p-1.5 text-center font-bold text-slate-900 text-[10px] leading-snug border border-[#cbd5e1] align-middle"
+                                    className="p-1.5 text-center font-bold text-slate-900 text-[10px] leading-snug border border-[#cbd5e1] align-middle uppercase"
                                   >
                                     <div>{team.instituteName}</div>
                                   </td>
@@ -597,7 +597,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                                     rowSpan={studentCount}
                                     className="p-1.5 text-center border border-[#cbd5e1] align-middle text-[10px]"
                                   >
-                                    <div className="font-bold text-slate-900 leading-tight">
+                                    <div className="font-bold text-slate-900 leading-tight uppercase">
                                       {team.mentorName}
                                     </div>
                                     <div className="text-[9px] text-slate-600 font-mono mt-0.5 font-semibold">
@@ -619,7 +619,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                                     rowSpan={studentCount}
                                     className="p-1.5 text-center border border-[#cbd5e1] align-middle text-[10px]"
                                   >
-                                    <div className="font-bold text-slate-900 leading-snug">
+                                    <div className="font-bold text-slate-900 leading-snug uppercase">
                                       {team.projectTitle}
                                     </div>
                                   </td>
@@ -632,7 +632,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                                     <span className="inline-block px-2 py-0.5 rounded-full font-black bg-blue-100 text-blue-800 border border-blue-300 shadow-2xs mb-0.5 text-[9px]">
                                       {team.theme.code}
                                     </span>
-                                    <div className="font-bold text-slate-800 leading-tight">
+                                    <div className="font-bold text-slate-800 leading-tight uppercase">
                                       {team.theme.name}
                                     </div>
                                   </td>
@@ -647,18 +647,18 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
 
                               {/* Student Name */}
                               <td className="p-1 text-left border border-[#cbd5e1] align-middle">
-                                <span className="font-extrabold text-slate-900 text-[10px] block leading-tight">
+                                <span className="font-extrabold text-slate-900 text-[10px] block leading-tight uppercase">
                                   {st.studentName}
                                 </span>
                               </td>
 
                               {/* Roll No */}
-                              <td className="roll-no-cell p-1 px-1 text-center font-mono font-bold text-slate-800 text-[9.5px] border border-[#cbd5e1] align-middle whitespace-nowrap overflow-visible">
+                              <td className="roll-no-cell p-1 px-1 text-center font-mono font-bold text-slate-800 text-[9.5px] border border-[#cbd5e1] align-middle whitespace-nowrap overflow-visible uppercase">
                                 {st.registrationNo}
                               </td>
 
                               {/* Semester */}
-                              <td className="p-1 text-center font-semibold text-slate-800 text-[9.5px] border border-[#cbd5e1] align-middle whitespace-nowrap">
+                              <td className="p-1 text-center font-semibold text-slate-800 text-[9.5px] border border-[#cbd5e1] align-middle whitespace-nowrap uppercase">
                                 {st.semester}
                               </td>
 

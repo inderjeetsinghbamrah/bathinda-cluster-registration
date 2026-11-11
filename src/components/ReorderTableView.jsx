@@ -572,10 +572,10 @@ export const ReorderTableView = ({
                       </td>
 
                       {/* Institute Name */}
-                      <td className="p-2.5 font-extrabold text-slate-900 max-w-[200px]">
+                      <td className="p-2.5 font-extrabold text-slate-900 max-w-[200px] uppercase">
                         <div>{team.instituteName}</div>
-                        <div className="text-[10.5px] text-slate-500 font-normal mt-0.5">
-                          Principal: {team.principalName} ({team.principalContact})
+                        <div className="text-[10.5px] text-slate-500 font-normal mt-0.5 normal-case">
+                          Principal: <span className="uppercase">{team.principalName}</span> ({team.principalContact})
                         </div>
                       </td>
 
@@ -594,7 +594,7 @@ export const ReorderTableView = ({
 
                       {/* Project Title */}
                       <td className="p-2.5 max-w-[240px]">
-                        <span className="font-extrabold text-slate-900 block leading-snug">
+                        <span className="font-extrabold text-slate-900 block leading-snug uppercase">
                           {team.projectTitle}
                         </span>
                       </td>
@@ -604,14 +604,14 @@ export const ReorderTableView = ({
                         <span className="inline-block px-2 py-0.5 rounded-full font-black text-[10px] bg-blue-100 text-blue-800 border border-blue-200 mb-0.5">
                           {team.theme.code}
                         </span>
-                        <div className="text-[10.5px] font-semibold text-slate-700 leading-tight">
+                        <div className="text-[10.5px] font-semibold text-slate-700 leading-tight uppercase">
                           {team.theme.name}
                         </div>
                       </td>
 
                       {/* Faculty Mentor */}
                       <td className="p-2.5 whitespace-nowrap">
-                        <div className="font-bold text-slate-900">{team.mentorName}</div>
+                        <div className="font-bold text-slate-900 uppercase">{team.mentorName}</div>
                         <div className="text-[10.5px] font-mono text-slate-500 font-semibold">
                           {team.mentorContact}
                         </div>
@@ -625,10 +625,10 @@ export const ReorderTableView = ({
                               key={sIdx}
                               className="text-[10.5px] bg-white p-1 rounded border border-slate-200 flex items-center justify-between gap-1 shadow-2xs"
                             >
-                              <span className="font-bold text-slate-800 truncate">
+                              <span className="font-bold text-slate-800 truncate uppercase">
                                 {st.studentOrder}. {st.studentName}
                               </span>
-                              <span className="text-[10px] text-slate-500 font-mono flex-shrink-0">
+                              <span className="text-[10px] text-slate-500 font-mono flex-shrink-0 uppercase">
                                 {st.registrationNo} &bull; {st.semester}
                               </span>
                             </div>

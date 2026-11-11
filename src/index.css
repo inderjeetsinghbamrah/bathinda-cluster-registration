@@ -84,7 +84,8 @@
     page-break-inside: avoid;
   }
 
-  .attendance-sheet-wrapper {
+  .attendance-sheet-wrapper,
+  .judges-panel-wrapper {
     background-color: white !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -97,6 +98,31 @@
     margin: 0 !important;
     padding: 0 !important;
     gap: 0 !important;
+  }
+
+  .print-board-sheet {
+    box-shadow: none !important;
+    border: 1.5px solid #0e3868 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 5mm 8mm !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    box-sizing: border-box !important;
+  }
+
+  .print-board-sheet table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+
+  .print-board-sheet th,
+  .print-board-sheet td {
+    padding: 3px 4px !important;
+    font-size: 8.5px !important;
+    line-height: 1.2 !important;
   }
 
   .attendance-page-sheet {
