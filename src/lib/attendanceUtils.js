@@ -46,6 +46,19 @@ export const getThemeDomain = (theme, other) => {
   };
 };
 
+/**
+ * Strips out email addresses from mentor contact string to show only clean phone number
+ */
+export const sanitizeMentorContact = (contact = '') => {
+  if (!contact) return '';
+  let cleaned = String(contact)
+    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '')
+    .replace(/[\/\s,;:-]+$/, '')
+    .replace(/^[\/\s,;:-]+/, '')
+    .trim();
+  return cleaned;
+};
+
 export const STORAGE_KEY_TEAM_ORDER = 'cluster_team_custom_order';
 
 export const loadCustomTeamOrder = () => {
@@ -145,7 +158,7 @@ export const formatAttendanceData = (
         teamNumber: t.team_number || 1,
         projectTitle: (t.project_title || '').trim(),
         mentorName: (t.mentor_name || '').trim(),
-        mentorContact: (t.mentor_contact || '').trim(),
+        mentorContact: sanitizeMentorContact(t.mentor_contact || ''),
         theme: getThemeDomain(t.project_theme, t.project_theme_other),
         students: formattedStudents
       });
@@ -386,10 +399,10 @@ export const generateVectorAttendancePdf = (
     const totalStudentsOnPage = pageTeams.reduce((acc, t) => acc + (t.students?.length || 1), 0);
     const rowMinHeight = totalStudentsOnPage <= 10 ? 10.5 : totalStudentsOnPage <= 12 ? 9.5 : 8.5;
     const cellPad = totalStudentsOnPage <= 10
-      ? { top: 1.8, bottom: 1.8, left: 1.2, right: 1.2 }
+      ? { top: 1.8, bottom: 1.8, left: 0.8, right: 0.8 }
       : totalStudentsOnPage <= 12
-      ? { top: 1.5, bottom: 1.5, left: 1.2, right: 1.2 }
-      : { top: 1.2, bottom: 1.2, left: 1.0, right: 1.0 };
+      ? { top: 1.5, bottom: 1.5, left: 0.8, right: 0.8 }
+      : { top: 1.2, bottom: 1.2, left: 0.7, right: 0.7 };
     const fontSize = totalStudentsOnPage <= 10 ? 7.3 : totalStudentsOnPage <= 12 ? 7.0 : 6.8;
 
     // Table Body with proper rowSpan
@@ -441,10 +454,10 @@ export const generateVectorAttendancePdf = (
           { content: 'Student Details', colSpan: 5, styles: { halign: 'center' } }
         ],
         [
-          { content: 'S. No.', styles: { halign: 'center' } },
+          { content: 'S. No.', styles: { halign: 'center', fontSize: 6.5 } },
           { content: 'Student Name', styles: { halign: 'left' } },
           { content: 'Roll No.', styles: { halign: 'center' } },
-          { content: 'Semester', styles: { halign: 'center' } },
+          { content: 'Semester', styles: { halign: 'center', fontSize: 6.5 } },
           { content: 'Signature', styles: { halign: 'center' } }
         ]
       ],
@@ -467,16 +480,16 @@ export const generateVectorAttendancePdf = (
       },
       columnStyles: {
         0: { cellWidth: 8 },   // Sr. No.
-        1: { cellWidth: 39 },  // Institution
-        2: { cellWidth: 31 },  // Mentor Name & Contact
-        3: { cellWidth: 18 },  // Mentor Attendance / Signature
-        4: { cellWidth: 42 },  // Project Idea
-        5: { cellWidth: 33 },  // Theme
+        1: { cellWidth: 37 },  // Institution
+        2: { cellWidth: 26 },  // Mentor Name & Contact
+        3: { cellWidth: 32 },  // Mentor Attendance / Signature (32mm wide!)
+        4: { cellWidth: 37 },  // Project Idea
+        5: { cellWidth: 26 },  // Theme
         6: { cellWidth: 8 },   // S. No.
-        7: { cellWidth: 32 },  // Student Name
-        8: { cellWidth: 26 },  // Roll No
-        9: { cellWidth: 18 },  // Semester
-        10: { cellWidth: 20 }  // Student Signature
+        7: { cellWidth: 28 },  // Student Name
+        8: { cellWidth: 23 },  // Roll No
+        9: { cellWidth: 16 },  // Semester (16mm fits Semester on 1 line)
+        10: { cellWidth: 34 }  // Student Signature (34mm wide!)
       }
     });
 

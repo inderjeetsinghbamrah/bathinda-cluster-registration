@@ -465,55 +465,55 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                     <tr className="bg-[#0e3868] text-white text-[9.5px] font-bold uppercase tracking-wider">
                       <th
                         rowSpan={2}
-                        className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '3%' }}
+                        className="p-1 text-center border border-[#94a3b8] align-middle"
+                        style={{ width: '2.5%' }}
                       >
                         Sr. No.
                       </th>
                       <th
                         rowSpan={2}
-                        className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '15%' }}
+                        className="p-1 text-center border border-[#94a3b8] align-middle"
+                        style={{ width: '13.5%' }}
                       >
                         Name of Institution
                         <br />
-                        <span className="text-[8.5px] font-normal lowercase tracking-normal opacity-90">
+                        <span className="text-[8px] font-normal lowercase tracking-normal opacity-90">
                           (College / Polytechnic)
                         </span>
                       </th>
                       <th
                         rowSpan={2}
-                        className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '11.5%' }}
+                        className="p-1 text-center border border-[#94a3b8] align-middle"
+                        style={{ width: '9.5%' }}
                       >
                         Faculty Mentor
                         <br />
-                        <span className="text-[8.5px] font-normal lowercase tracking-normal opacity-90">
+                        <span className="text-[8px] font-normal lowercase tracking-normal opacity-90">
                           (Name &amp; Contact No.)
                         </span>
                       </th>
                       <th
                         rowSpan={2}
                         className="p-1 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]"
-                        style={{ width: '6.5%' }}
+                        style={{ width: '12.5%' }}
                       >
                         Faculty Mentor
                         <br />
-                        <span className="text-[8.5px] font-normal lowercase tracking-normal opacity-90">
+                        <span className="text-[8px] font-normal lowercase tracking-normal opacity-90">
                           Attendance (Sign)
                         </span>
                       </th>
                       <th
                         rowSpan={2}
-                        className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '15%' }}
+                        className="p-1 text-center border border-[#94a3b8] align-middle"
+                        style={{ width: '13.5%' }}
                       >
                         Project Idea / Title of Innovation
                       </th>
                       <th
                         rowSpan={2}
-                        className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '12%' }}
+                        className="p-1 text-center border border-[#94a3b8] align-middle"
+                        style={{ width: '9.5%' }}
                       >
                         Theme /
                         <br />
@@ -521,8 +521,8 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       </th>
                       <th
                         colSpan={5}
-                        className="p-1.5 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]"
-                        style={{ width: '37%' }}
+                        className="p-1 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]"
+                        style={{ width: '39%' }}
                       >
                         Student Details
                       </th>
@@ -530,19 +530,19 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
 
                     {/* Sub-Header Row 2 for Student Details */}
                     <tr className="bg-[#0f3460] text-white text-[9px] font-bold text-center">
-                      <th className="p-1 border border-[#94a3b8]" style={{ width: '3%' }}>
+                      <th className="p-1 border border-[#94a3b8]" style={{ width: '2.5%' }}>
                         S. No.
                       </th>
-                      <th className="p-1 border border-[#94a3b8]" style={{ width: '12%' }}>
+                      <th className="p-1 border border-[#94a3b8]" style={{ width: '10%' }}>
                         Student Name
                       </th>
-                      <th className="p-1 border border-[#94a3b8]" style={{ width: '11.5%' }}>
+                      <th className="p-1 border border-[#94a3b8]" style={{ width: '9%' }}>
                         Roll No.
                       </th>
-                      <th className="p-1 border border-[#94a3b8]" style={{ width: '4.5%' }}>
+                      <th className="p-1 border border-[#94a3b8]" style={{ width: '5%' }}>
                         Semester
                       </th>
-                      <th className="p-1 border border-[#94a3b8]" style={{ width: '6%' }}>
+                      <th className="p-1 border border-[#94a3b8]" style={{ width: '12.5%' }}>
                         Signature
                       </th>
                     </tr>
