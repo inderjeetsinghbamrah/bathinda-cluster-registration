@@ -221,7 +221,7 @@ export const JuryRubricsSection = ({
     setIsExportingPdf(true);
     try {
       await new Promise((r) => setTimeout(r, 60));
-      generateConsolidatedJuryMatrixPdf(formattedTeams, variant);
+      generateConsolidatedJuryMatrixPdf(formattedTeams, variant, null, judgesMap);
     } catch (err) {
       alert('Error generating Master Matrix: ' + err.message);
     } finally {
@@ -233,7 +233,7 @@ export const JuryRubricsSection = ({
     setIsExportingPdf(true);
     try {
       await new Promise((r) => setTimeout(r, 80));
-      generateAllThreeMasterSheetsPdf(formattedTeams);
+      generateAllThreeMasterSheetsPdf(formattedTeams, null, judgesMap);
     } catch (err) {
       alert('Error generating All 3 Master Sheets: ' + err.message);
     } finally {
@@ -773,54 +773,66 @@ export const JuryRubricsSection = ({
             {sheetVariant === 'all_seven' && (
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 pt-1">
                 {[
-                  { role: 'Chairperson, Jury Board', tag: 'Academic & Admin Head' },
-                  { role: 'Jury Member 1', tag: 'Academic / Technical' },
-                  { role: 'Jury Member 2', tag: 'Tech Industry Leader' },
-                  { role: 'Jury Member 3', tag: 'Industry & Innovation' },
-                  { role: 'Jury Member 4', tag: 'Prototype & Feasibility' },
-                  { role: 'Reserve Member 1', tag: 'Standby Expert' },
-                  { role: 'Reserve Member 2', tag: 'Standby Expert' }
-                ].map((sig, sIdx) => (
-                  <div
-                    key={sIdx}
-                    className="p-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 text-center flex flex-col justify-end min-h-[72px]"
-                  >
-                    <div className="border-b border-dashed border-slate-400 mb-2 mt-4" />
-                    <div className="font-extrabold text-[11px] text-slate-800 leading-tight">
-                      {sig.role}
+                  { role: 'Chairperson, Jury Board', slotKey: 'chairperson_1' },
+                  { role: 'Jury Member 1', slotKey: 'jury_member_1' },
+                  { role: 'Jury Member 2', slotKey: 'jury_member_2' },
+                  { role: 'Jury Member 3', slotKey: 'jury_member_3' },
+                  { role: 'Jury Member 4', slotKey: 'jury_member_4' },
+                  { role: 'Reserve Jury Member 1', slotKey: 'reserve_member_1' },
+                  { role: 'Reserve Jury Member 2', slotKey: 'reserve_member_2' }
+                ].map((sig, sIdx) => {
+                  const jName = judgesMap.get(sig.slotKey)?.name;
+                  const bracketText = jName ? `(${jName.toUpperCase()})` : '(Name: _________________)';
+                  return (
+                    <div
+                      key={sIdx}
+                      className="p-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 text-center flex flex-col justify-end min-h-[72px]"
+                    >
+                      <div className="border-b border-dashed border-slate-400 mb-2 mt-4" />
+                      <div className="font-extrabold text-[11px] text-slate-800 leading-tight">
+                        {sig.role}
+                      </div>
+                      <div className="text-[10px] text-slate-600 font-semibold mt-0.5 truncate" title={bracketText}>
+                        {bracketText}
+                      </div>
                     </div>
-                    <div className="text-[9.5px] text-slate-500 font-medium">{sig.tag}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             {sheetVariant === 'core_only' && (
               <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 pt-1">
                 {[
-                  { role: 'Chairperson, Jury Board', tag: 'Academic & Admin Head' },
-                  { role: 'Jury Member 1 (Academic)', tag: 'Technical Evaluation' },
-                  { role: 'Jury Member 2 (Tech Leader)', tag: 'Industry Innovation' },
-                  { role: 'Jury Member 3 (Industry)', tag: 'Adoption & Sustainability' },
-                  { role: 'Jury Member 4 (Prototype)', tag: 'Design Feasibility' }
-                ].map((sig, sIdx) => (
-                  <div
-                    key={sIdx}
-                    className="p-3.5 rounded-xl border border-dashed border-blue-200 bg-blue-50/40 text-center flex flex-col justify-end min-h-[76px]"
-                  >
-                    <div className="border-b border-dashed border-blue-400 mb-2 mt-5" />
-                    <div className="font-extrabold text-xs text-blue-950 leading-tight">
-                      {sig.role}
+                  { role: 'Chairperson, Jury Board', slotKey: 'chairperson_1' },
+                  { role: 'Jury Member 1', slotKey: 'jury_member_1' },
+                  { role: 'Jury Member 2', slotKey: 'jury_member_2' },
+                  { role: 'Jury Member 3', slotKey: 'jury_member_3' },
+                  { role: 'Jury Member 4', slotKey: 'jury_member_4' }
+                ].map((sig, sIdx) => {
+                  const jName = judgesMap.get(sig.slotKey)?.name;
+                  const bracketText = jName ? `(${jName.toUpperCase()})` : '(Name: _________________)';
+                  return (
+                    <div
+                      key={sIdx}
+                      className="p-3.5 rounded-xl border border-dashed border-blue-200 bg-blue-50/40 text-center flex flex-col justify-end min-h-[76px]"
+                    >
+                      <div className="border-b border-dashed border-blue-400 mb-2 mt-5" />
+                      <div className="font-extrabold text-xs text-blue-950 leading-tight">
+                        {sig.role}
+                      </div>
+                      <div className="text-[10.5px] text-blue-900 font-semibold mt-0.5 truncate" title={bracketText}>
+                        {bracketText}
+                      </div>
                     </div>
-                    <div className="text-[10px] text-blue-700 font-medium">{sig.tag}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             {sheetVariant === 'individual' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs space-y-2">
+                <div className="p-4 rounded-xl border border-slate-200 bg-white text-xs space-y-2">
                   <div className="font-extrabold text-slate-900 text-xs">
                     Evaluator's Overall Observations / Key Remarks:
                   </div>
@@ -828,7 +840,7 @@ export const JuryRubricsSection = ({
                   <div className="border-b border-dashed border-slate-300 h-5" />
                   <div className="border-b border-dashed border-slate-300 h-5" />
                 </div>
-                <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 text-xs space-y-2.5">
+                <div className="p-4 rounded-xl border border-slate-200 bg-white text-xs space-y-2.5">
                   <div className="font-extrabold text-blue-950 text-xs">
                     Evaluator Certification &amp; Signature:
                   </div>

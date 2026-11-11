@@ -473,7 +473,7 @@ export const generateVectorRubricsGuidePdf = (filename = null) => {
     doc.setFontSize(6.5);
     doc.setTextColor(100, 100, 100);
     doc.text(
-      `Punjab Polytechnic Innovation Challenge 2026-27 • Official 50-Mark Jury Rubrics Reference Guide • Page ${pg.pageNo} of ${pg.totalPages}`,
+      'Punjab Polytechnic Innovation Challenge 2026-27 • Official 50-Mark Jury Rubrics Reference Guide',
       14,
       Math.min(202, Math.max(finalY, 198))
     );
@@ -833,16 +833,54 @@ export const generateBatchAllTeamsScoreSheetsPdf = (teamsList = [], filename = n
  * NOTE: Both Sheet 1 and Sheet 2 fit all 17 teams, institute, team details, 20 criteria, and signatures on Page 1!
  * NOTE: Prominent high-contrast reference note box rendered inside printable page frame.
  */
+/**
+ * Helper to resolve judges into a Map keyed by slotKey.
+ * Supports Map, Array, or fallback to localStorage.
+ */
+const resolveJudgesMap = (judgesInput) => {
+  if (judgesInput instanceof Map) return judgesInput;
+  const map = new Map();
+  let list = [];
+  if (Array.isArray(judgesInput) && judgesInput.length > 0) {
+    list = judgesInput;
+  } else if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('cluster_competition_judges');
+      if (raw) list = JSON.parse(raw);
+    } catch {
+      list = [];
+    }
+  }
+  if (Array.isArray(list)) {
+    list.forEach((j) => {
+      if (j && j.slotKey) map.set(j.slotKey, j);
+    });
+  }
+  return map;
+};
+
 const renderMasterMatrixPage = (
   doc,
   teamsList = [],
   mode = 'all_seven',
   pageNumber = 1,
-  totalPages = 3
+  totalPages = 3,
+  judgesInput = null
 ) => {
   const pageWidth = 297;
   const pageHeight = 210;
   const margin = 7;
+
+  // Resolve judges map for signature block names in brackets
+  const jMap = resolveJudgesMap(judgesInput);
+  const getJudgeBracketName = (slotKey) => {
+    const judge = jMap.get(slotKey);
+    const name = judge?.name ? judge.name.trim() : '';
+    if (name) {
+      return `(${name.toUpperCase()})`;
+    }
+    return '(Name: _________________)';
+  };
 
   // Determine if this sheet variant displays full Institute Name and Team Details (Mentor & Students)
   const hasInstituteAndTeam = mode === 'all_seven' || mode === 'core_only';
@@ -1100,27 +1138,37 @@ const renderMasterMatrixPage = (
     doc.text('OFFICIAL JURY BOARD ENDORSEMENT & FINAL RANKING VALIDATION (ALL 7 MEMBERS):', 7, finalY + 2.2);
 
     const sigs = [
-      'Chairperson, Jury Board',
-      'Jury Member 1 (Academic)',
-      'Jury Member 2 (Tech Leader)',
-      'Jury Member 3 (Industry)',
-      'Jury Member 4 (Prototype)',
-      'Reserve Jury Member 1',
-      'Reserve Jury Member 2'
+      { role: 'Chairperson, Jury Board', slotKey: 'chairperson_1' },
+      { role: 'Jury Member 1', slotKey: 'jury_member_1' },
+      { role: 'Jury Member 2', slotKey: 'jury_member_2' },
+      { role: 'Jury Member 3', slotKey: 'jury_member_3' },
+      { role: 'Jury Member 4', slotKey: 'jury_member_4' },
+      { role: 'Reserve Jury Member 1', slotKey: 'reserve_member_1' },
+      { role: 'Reserve Jury Member 2', slotKey: 'reserve_member_2' }
     ];
     const totalW = 283;
     const gap = 2.5;
     const boxW = (totalW - (sigs.length - 1) * gap) / sigs.length; // ~38.2mm
-    sigs.forEach((sig, sIdx) => {
+    sigs.forEach((item, sIdx) => {
       const x = 7 + sIdx * (boxW + gap);
       doc.setDrawColor(180, 180, 180);
       doc.setLineDashPattern([1, 1], 0);
       doc.line(x, finalY + 8.5, x + boxW, finalY + 8.5);
       doc.setLineDashPattern([], 0);
+
+      // Role Title
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(5.0);
+      doc.setTextColor(14, 56, 104);
+      doc.text(item.role, x + boxW / 2, finalY + 11.2, { align: 'center' });
+
+      // Judge Name in Bracket
+      const bracketStr = getJudgeBracketName(item.slotKey);
+      const isAssigned = !bracketStr.startsWith('(Name:');
+      doc.setFont('helvetica', isAssigned ? 'bold' : 'normal');
+      doc.setFontSize(4.7);
       doc.setTextColor(50, 60, 80);
-      doc.text(sig, x + boxW / 2, finalY + 11.2, { align: 'center' });
+      doc.text(bracketStr, x + boxW / 2, finalY + 14.1, { align: 'center' });
     });
   } else if (mode === 'core_only') {
     doc.setFont('helvetica', 'bold');
@@ -1129,25 +1177,35 @@ const renderMasterMatrixPage = (
     doc.text('CORE EVALUATION JURY BOARD ENDORSEMENT & CLUSTER RANKING VALIDATION (5 CORE MEMBERS):', 7, finalY + 2.5);
 
     const sigs = [
-      'Chairperson, Jury Board',
-      'Jury Member 1 (Academic & Tech)',
-      'Jury Member 2 (Tech Industry Leader)',
-      'Jury Member 3 (Industry & Innovation)',
-      'Jury Member 4 (Prototype & Feasibility)'
+      { role: 'Chairperson, Jury Board', slotKey: 'chairperson_1' },
+      { role: 'Jury Member 1', slotKey: 'jury_member_1' },
+      { role: 'Jury Member 2', slotKey: 'jury_member_2' },
+      { role: 'Jury Member 3', slotKey: 'jury_member_3' },
+      { role: 'Jury Member 4', slotKey: 'jury_member_4' }
     ];
     const totalW = 283;
     const gap = 3.5;
     const boxW = (totalW - (sigs.length - 1) * gap) / sigs.length; // ~53.8mm
-    sigs.forEach((sig, sIdx) => {
+    sigs.forEach((item, sIdx) => {
       const x = 7 + sIdx * (boxW + gap);
       doc.setDrawColor(180, 180, 180);
       doc.setLineDashPattern([1, 1], 0);
-      doc.line(x, finalY + 9.5, x + boxW, finalY + 9.5);
+      doc.line(x, finalY + 9.0, x + boxW, finalY + 9.0);
       doc.setLineDashPattern([], 0);
+
+      // Role Title
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(5.4);
+      doc.setFontSize(5.5);
+      doc.setTextColor(14, 56, 104);
+      doc.text(item.role, x + boxW / 2, finalY + 12.0, { align: 'center' });
+
+      // Judge Name in Bracket
+      const bracketStr = getJudgeBracketName(item.slotKey);
+      const isAssigned = !bracketStr.startsWith('(Name:');
+      doc.setFont('helvetica', isAssigned ? 'bold' : 'normal');
+      doc.setFontSize(5.0);
       doc.setTextColor(50, 60, 80);
-      doc.text(sig, x + boxW / 2, finalY + 12.5, { align: 'center' });
+      doc.text(bracketStr, x + boxW / 2, finalY + 15.1, { align: 'center' });
     });
   } else if (mode === 'individual') {
     doc.setFont('helvetica', 'bold');
@@ -1155,12 +1213,12 @@ const renderMasterMatrixPage = (
     doc.setTextColor(14, 56, 104);
     doc.text('INDIVIDUAL EVALUATOR SCORING DECLARATION & SIGNATURE:', 7, finalY + 2.5);
 
-    // Left Box: Evaluator Remarks (width 165mm)
+    // Left Box: Evaluator Remarks (width 165mm) - PURE WHITE BACKGROUND
     const boxY = finalY + 4;
     const boxH = 17.5;
-    doc.setFillColor(250, 250, 252);
+    doc.setFillColor(255, 255, 255);
     doc.setDrawColor(203, 213, 225);
-    doc.setLineWidth(0.25);
+    doc.setLineWidth(0.3);
     doc.roundedRect(7, boxY, 165, boxH, 1.5, 1.5, 'FD');
 
     doc.setFont('helvetica', 'bold');
@@ -1174,8 +1232,12 @@ const renderMasterMatrixPage = (
     doc.line(9, boxY + 13, 169, boxY + 13);
     doc.setLineDashPattern([], 0);
 
-    // Right Box: Evaluator Signature Block (width 114mm)
+    // Right Box: Evaluator Signature Block (width 114mm) - PURE WHITE BACKGROUND
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.3);
     doc.roundedRect(176, boxY, 114, boxH, 1.5, 1.5, 'FD');
+
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.2);
     doc.setTextColor(14, 56, 104);
@@ -1207,22 +1269,22 @@ const renderMasterMatrixPage = (
   doc.setTextColor(255, 255, 255);
   doc.text('RUBRIC REFERENCE', 25.5, noteBoxY + 4.7, { align: 'center' });
 
-  // High contrast note text
+  // High contrast note text without page numbers
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.2);
   doc.setTextColor(15, 23, 42); // slate-900 (crisp and bold)
   doc.text(
-    'See Pages 2 & 3 for complete elaborated descriptions and scoring criteria (Scores 0, 1, 2, 3) for all 20 Sub-Parameters (1.1 through 4.5).',
+    'See attached Rubric Reference Guide for complete descriptions and scoring criteria (Scores 0, 1, 2, 3) for all 20 Sub-Parameters (1.1 through 4.5).',
     45.5,
     noteBoxY + 4.7
   );
 
-  // Sub-footer page number well inside page frame
+  // Sub-footer clean branding (no page numbering)
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(6.5);
   doc.setTextColor(100, 116, 139);
   doc.text(
-    `Punjab Polytechnic Innovation Challenge- 2026-27 • Official Master Scoring Matrix • Page ${pageNumber} of ${totalPages}`,
+    'Punjab Polytechnic Innovation Challenge- 2026-27 • Official Master Scoring Matrix',
     8,
     199.5
   );
@@ -1328,12 +1390,12 @@ const renderRubricsElaborationPages = (doc, startPageNumber = 2, totalPages = 3)
       }
     });
 
-    // Sub-footer on criteria pages well inside page border
+    // Sub-footer on criteria pages (clean branding without page numbering)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
     doc.setTextColor(100, 116, 139);
     doc.text(
-      `Punjab Polytechnic Innovation Challenge- 2026-27 • Official 50-Mark Rubric Reference • Page ${pg.pageNo} of ${totalPages}`,
+      'Punjab Polytechnic Innovation Challenge- 2026-27 • Official 50-Mark Rubrics & Criteria Reference Guide',
       10,
       199.5
     );
@@ -1354,7 +1416,8 @@ const renderRubricsElaborationPages = (doc, startPageNumber = 2, totalPages = 3)
 export const generateConsolidatedJuryMatrixPdf = (
   teamsList = [],
   mode = 'all_seven',
-  filename = null
+  filename = null,
+  judgesInput = null
 ) => {
   const doc = new jsPDF({
     orientation: 'landscape',
@@ -1364,7 +1427,7 @@ export const generateConsolidatedJuryMatrixPdf = (
   });
 
   // Page 1: Master Matrix for requested mode
-  renderMasterMatrixPage(doc, teamsList, mode, 1, 3);
+  renderMasterMatrixPage(doc, teamsList, mode, 1, 3, judgesInput);
 
   // Pages 2 & 3: Elaborated Criteria Reference
   renderRubricsElaborationPages(doc, 2, 3);
@@ -1388,7 +1451,11 @@ export const generateConsolidatedJuryMatrixPdf = (
  * Page 3: Sheet 3 (Individual Evaluator Scoring Sheet)
  * Pages 4 & 5: Complete Elaborated Criteria Reference Guide
  */
-export const generateAllThreeMasterSheetsPdf = (teamsList = [], filename = null) => {
+export const generateAllThreeMasterSheetsPdf = (
+  teamsList = [],
+  filename = null,
+  judgesInput = null
+) => {
   const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
@@ -1397,15 +1464,15 @@ export const generateAllThreeMasterSheetsPdf = (teamsList = [], filename = null)
   });
 
   // Page 1: Sheet 1 (All 7 Jury Members)
-  renderMasterMatrixPage(doc, teamsList, 'all_seven', 1, 5);
+  renderMasterMatrixPage(doc, teamsList, 'all_seven', 1, 5, judgesInput);
 
   // Page 2: Sheet 2 (Core Jury Board Only - 5 Members)
   doc.addPage('a4', 'landscape');
-  renderMasterMatrixPage(doc, teamsList, 'core_only', 2, 5);
+  renderMasterMatrixPage(doc, teamsList, 'core_only', 2, 5, judgesInput);
 
   // Page 3: Sheet 3 (Individual Evaluator Scoring Sheet)
   doc.addPage('a4', 'landscape');
-  renderMasterMatrixPage(doc, teamsList, 'individual', 3, 5);
+  renderMasterMatrixPage(doc, teamsList, 'individual', 3, 5, judgesInput);
 
   // Pages 4 & 5: Complete Elaborated Criteria Reference Guide
   renderRubricsElaborationPages(doc, 4, 5);
