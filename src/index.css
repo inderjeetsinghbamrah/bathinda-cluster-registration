@@ -49,13 +49,20 @@
   background-color: #94a3b8;
 }
 
-/* Print Styles for Official Receipt Slip */
+/* Print Styles for Official Receipt Slip & Attendance Sheet */
 @media print {
+  @page {
+    size: A4 landscape;
+    margin: 6mm;
+  }
+
   body {
     background-color: white !important;
     color: black !important;
     margin: 0 !important;
     padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .no-print {
@@ -73,5 +80,41 @@
     margin: 0 !important;
     padding: 20px !important;
     page-break-inside: avoid;
+  }
+
+  .attendance-sheet-print-container {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  .attendance-page-sheet {
+    box-shadow: none !important;
+    border: 2px solid #0e3868 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 15px 0 !important;
+    page-break-after: always;
+    page-break-inside: avoid;
+    break-after: page;
+    break-inside: avoid;
+    padding: 12px !important;
+    box-sizing: border-box !important;
+    border-radius: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .attendance-page-sheet:last-child {
+    page-break-after: auto;
+    break-after: auto;
+    margin-bottom: 0 !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }

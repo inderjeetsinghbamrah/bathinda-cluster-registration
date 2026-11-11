@@ -23,9 +23,12 @@ import {
   Square,
   Layers,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ClipboardCheck,
+  FileText
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { AttendanceSheet } from './AttendanceSheet';
 
 export const AdminPortal = () => {
   const [token, setToken] = useState(() => localStorage.getItem('cluster_admin_token') || '');
@@ -636,135 +639,166 @@ export const AdminPortal = () => {
           </div>
         </div>
 
-        {/* Overview Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 no-print">
-          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-6 h-6" />
+        {/* Overview Stats Cards - Only visible in institutes/roster views */}
+        {viewMode !== 'attendance' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 no-print">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Registered Institutes</span>
+                <span className="text-2xl sm:text-3xl font-black text-slate-800">{totalInstitutes}</span>
+              </div>
             </div>
-            <div>
-              <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Registered Institutes</span>
-              <span className="text-2xl sm:text-3xl font-black text-slate-800">{totalInstitutes}</span>
+
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0">
+                <FolderKanban className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Project Teams</span>
+                <span className="text-2xl sm:text-3xl font-black text-slate-800">{totalTeams}</span>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Enrolled Students</span>
+                <span className="text-2xl sm:text-3xl font-black text-slate-800">{totalStudents}</span>
+              </div>
             </div>
           </div>
+        )}
 
-          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0">
-              <FolderKanban className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Project Teams</span>
-              <span className="text-2xl sm:text-3xl font-black text-slate-800">{totalTeams}</span>
-            </div>
-          </div>
+        {/* Toolbar: Search, View Switcher & Action Buttons - Only visible in institutes/roster views */}
+        {viewMode !== 'attendance' && (
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs mb-5 flex flex-wrap items-center justify-between gap-3 no-print">
+            <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+              {/* Search box */}
+              <div className="relative flex-1 min-w-[200px] max-w-md">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search by institute, code, mentor, student..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
 
-          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
-              <Users className="w-6 h-6" />
+              {/* View Mode Switcher */}
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('institutes')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                    viewMode === 'institutes' ? 'bg-white text-blue-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  By Institutes ({submissions.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('roster')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                    viewMode === 'roster' ? 'bg-white text-blue-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Joined Student Roster ({joinedRecords.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('attendance')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                    viewMode === 'attendance'
+                      ? 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-xs'
+                      : 'text-blue-700 hover:text-blue-900 hover:bg-blue-50/60'
+                  }`}
+                >
+                  <ClipboardCheck className="w-3.5 h-3.5" />
+                  <span>Attendance Sheet (PDF)</span>
+                </button>
+              </div>
             </div>
-            <div>
-              <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Enrolled Students</span>
-              <span className="text-2xl sm:text-3xl font-black text-slate-800">{totalStudents}</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Toolbar: Search, View Switcher & Action Buttons */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs mb-5 flex flex-wrap items-center justify-between gap-3 no-print">
-          <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
-            {/* Search box */}
-            <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search by institute, code, mentor, student..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-
-            {/* View Mode Switcher */}
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+            {/* Action buttons & Export */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Direct Attendance Sheet PDF Button */}
               <button
                 type="button"
-                onClick={() => setViewMode('institutes')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                  viewMode === 'institutes' ? 'bg-white text-blue-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
+                onClick={() => setViewMode('attendance')}
+                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 active:scale-95 text-white text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
               >
-                By Institutes ({submissions.length})
+                <FileText className="w-4 h-4 text-amber-300" />
+                <span>Attendance Sheet (PDF)</span>
               </button>
+
+              {/* Bulk Delete Button if items selected */}
+              {selectedSubmissionIds.size > 0 && (
+                <button
+                  type="button"
+                  onClick={openDeleteBulkModal}
+                  className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer animate-pulse"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete Selected ({selectedSubmissionIds.size})</span>
+                </button>
+              )}
+
               <button
-                type="button"
-                onClick={() => setViewMode('roster')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                  viewMode === 'roster' ? 'bg-white text-blue-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
+                onClick={() => fetchSubmissions()}
+                disabled={isLoadingSubmissions}
+                className="px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                title="Refresh Registry"
               >
-                Joined Student Roster ({joinedRecords.length})
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingSubmissions ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+
+              {/* Export to Excel (.xlsx) */}
+              <button
+                onClick={exportToExcel}
+                disabled={joinedRecords.length === 0}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs transition disabled:opacity-50 cursor-pointer"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>Export Excel</span>
+              </button>
+
+              {/* Export to CSV */}
+              <button
+                onClick={exportToCsv}
+                disabled={joinedRecords.length === 0}
+                className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition disabled:opacity-50 cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>CSV</span>
+              </button>
+
+              {/* Print / Save to PDF */}
+              <button
+                onClick={() => window.print()}
+                disabled={joinedRecords.length === 0}
+                className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs transition disabled:opacity-50 cursor-pointer"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print</span>
               </button>
             </div>
           </div>
+        )}
 
-          {/* Action buttons & Export */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Bulk Delete Button if items selected */}
-            {selectedSubmissionIds.size > 0 && (
-              <button
-                type="button"
-                onClick={openDeleteBulkModal}
-                className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer animate-pulse"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Delete Selected ({selectedSubmissionIds.size})</span>
-              </button>
-            )}
-
-            <button
-              onClick={() => fetchSubmissions()}
-              disabled={isLoadingSubmissions}
-              className="px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
-              title="Refresh Registry"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingSubmissions ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
-
-            {/* Export to Excel (.xlsx) */}
-            <button
-              onClick={exportToExcel}
-              disabled={joinedRecords.length === 0}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs transition disabled:opacity-50 cursor-pointer"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Export Excel</span>
-            </button>
-
-            {/* Export to CSV */}
-            <button
-              onClick={exportToCsv}
-              disabled={joinedRecords.length === 0}
-              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition disabled:opacity-50 cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>CSV</span>
-            </button>
-
-            {/* Print / Save to PDF */}
-            <button
-              onClick={() => window.print()}
-              disabled={joinedRecords.length === 0}
-              className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs transition disabled:opacity-50 cursor-pointer"
-            >
-              <Printer className="w-4 h-4" />
-              <span>Print</span>
-            </button>
-          </div>
-        </div>
-
-        {/* VIEW MODE 1: INSTITUTES GROUPED VIEW (Ideal for Managing & Deleting) */}
-        {viewMode === 'institutes' ? (
+        {/* VIEW MODES: ATTENDANCE SHEET, INSTITUTES GROUPED VIEW, OR MASTER ROSTER */}
+        {viewMode === 'attendance' ? (
+          <AttendanceSheet
+            submissions={submissions}
+            onBack={() => setViewMode('institutes')}
+          />
+        ) : viewMode === 'institutes' ? (
           <div className="space-y-4">
             {/* Select all header */}
             {submissions.length > 0 && (
@@ -849,16 +883,29 @@ export const AdminPortal = () => {
                         </div>
                       </div>
 
-                      {/* Delete Authority Button */}
-                      <button
-                        type="button"
-                        onClick={() => openDeleteSingleModal(sub)}
-                        className="px-3 py-1.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer no-print"
-                        title="Delete this entire institute submission"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-red-600" />
-                        <span>Delete Entry</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {/* Attendance Sheet Button */}
+                        <button
+                          type="button"
+                          onClick={() => setViewMode('attendance')}
+                          className="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer no-print"
+                          title="Open official Attendance Sheet"
+                        >
+                          <ClipboardCheck className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Attendance Sheet</span>
+                        </button>
+
+                        {/* Delete Authority Button */}
+                        <button
+                          type="button"
+                          onClick={() => openDeleteSingleModal(sub)}
+                          className="px-3 py-1.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer no-print"
+                          title="Delete this entire institute submission"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                          <span>Delete Entry</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Teams Breakdown */}
