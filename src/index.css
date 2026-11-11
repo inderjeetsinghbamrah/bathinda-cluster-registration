@@ -140,6 +140,7 @@
     border-radius: 4px !important;
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
     min-height: auto !important;
     max-height: 195mm !important;
     height: auto !important;
@@ -153,6 +154,14 @@
     overflow: hidden !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  .jury-attendance-sheet {
+    min-width: 0 !important;
+    max-height: none !important;
+    height: auto !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
 
   .attendance-page-sheet:last-of-type,

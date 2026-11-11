@@ -1,6 +1,13 @@
 import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { getSupabaseClient } from './supabase.js';
 import { EVENT_DETAILS } from './attendanceUtils.js';
+import {
+  LOGO_PUNJAB_GOVT,
+  LOGO_TECH_ED,
+  LOGO_GPC_BATHINDA
+} from './logos.js';
 
 export const JUDGE_DOMAINS = [
   'SENIOR EXTERNAL ACADEMIC',
@@ -422,4 +429,249 @@ export const exportJudgesToCsv = (judgesList = [], filename = '') => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+/**
+ * Export Jury Attendance Sheet to Excel (.xlsx) with columns for Reporting In-Time and Signature
+ */
+export const exportJuryAttendanceToExcel = (judgesList = [], filename = '') => {
+  const slotMap = new Map();
+  judgesList.forEach((j) => slotMap.set(j.slotKey, j));
+
+  const excelRows = JUDGE_SLOTS.map((slot, idx) => {
+    const judge = slotMap.get(slot.slotKey);
+    return {
+      'Sr. No.': idx + 1,
+      'Jury Role / Position': slot.label.toUpperCase(),
+      'Judge Full Name': judge?.name ? judge.name.toUpperCase() : 'VACANT / UNASSIGNED',
+      'Contact Number': judge?.contact || '-',
+      'Email ID': judge?.email || '-',
+      'Designation': judge?.designation ? judge.designation.toUpperCase() : '-',
+      'Organisation': judge?.organisation ? judge.organisation.toUpperCase() : '-',
+      'Organisation Location': judge?.organisationLocation ? judge.organisationLocation.toUpperCase() : '-',
+      'Domain Specialization': judge?.domain ? judge.domain.toUpperCase() : '-',
+      'Reporting In-Time': '', // Blank for physical time entry on event day
+      'Attendance / Physical Signature': '', // Blank for physical signature
+      'Remarks': ''
+    };
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(excelRows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Jury Attendance Sheet');
+
+  worksheet['!cols'] = [
+    { wch: 8 },  // Sr. No.
+    { wch: 28 }, // Role
+    { wch: 30 }, // Name
+    { wch: 16 }, // Contact
+    { wch: 26 }, // Email
+    { wch: 26 }, // Designation
+    { wch: 32 }, // Organisation
+    { wch: 22 }, // Location
+    { wch: 34 }, // Domain
+    { wch: 18 }, // In-Time
+    { wch: 28 }, // Signature
+    { wch: 22 }  // Remarks
+  ];
+
+  const fname =
+    filename ||
+    `Jury_Attendance_Sheet_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.xlsx`;
+  XLSX.writeFile(workbook, fname);
+};
+
+/**
+ * Download official Jury Attendance Sheet as crisp pure Vector PDF using jsPDF + jspdf-autotable.
+ * Guarantees true vector sharpness, embedded logos, exact landscape A4 layout, and large signature boxes.
+ */
+export const generateVectorJuryAttendancePdf = (
+  judgesList = [],
+  filename = ''
+) => {
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4',
+    compress: true
+  });
+
+  const pageWidth = 297;
+  const pageHeight = 210;
+  const margin = 8;
+
+  // Outer Page Border
+  doc.setDrawColor(14, 56, 104);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(margin, margin, pageWidth - margin * 2, pageHeight - margin * 2, 3, 3, 'S');
+
+  // Header Left: Punjab Govt & Tech Ed Logos
+  try {
+    doc.addImage(LOGO_PUNJAB_GOVT, 'JPEG', margin + 3, margin + 3, 14, 14);
+    doc.addImage(LOGO_TECH_ED, 'JPEG', margin + 19, margin + 4.5, 11, 11);
+  } catch (e) {
+    console.warn('Failed to embed left logos in PDF:', e);
+  }
+
+  // PSBTE Text
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(14, 56, 104);
+  doc.text(EVENT_DETAILS.boardName, margin + 32, margin + 8);
+  doc.setFontSize(6);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(60, 60, 60);
+  doc.text('Punjab State Board of Technical Education\n& Industrial Training Punjab', margin + 32, margin + 11.5);
+
+  // Title Center
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(14, 56, 104);
+  doc.text(EVENT_DETAILS.eventName, pageWidth / 2, margin + 7, { align: 'center' });
+
+  // Center Pill Banner
+  doc.setFillColor(14, 56, 104);
+  doc.roundedRect(pageWidth / 2 - 62, margin + 9.5, 124, 5.5, 2.75, 2.75, 'F');
+  doc.setFontSize(8.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text('Cluster-Level Competition – Jury Evaluation Board Attendance Sheet', pageWidth / 2, margin + 13.5, { align: 'center' });
+
+  // Center Meta Bar
+  doc.setFillColor(241, 245, 249);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(pageWidth / 2 - 70, margin + 16.5, 140, 4.5, 2.25, 2.25, 'FD');
+  doc.setFontSize(7);
+  doc.setTextColor(30, 41, 59);
+  doc.text(`Cluster: Bathinda   |   Venue / Host: ${EVENT_DETAILS.hostInstitute}   |   Date: ${EVENT_DETAILS.eventDate}`, pageWidth / 2, margin + 19.8, { align: 'center' });
+
+  // Header Right: GPC Bathinda Logo
+  try {
+    doc.addImage(LOGO_GPC_BATHINDA, 'JPEG', pageWidth - margin - 17, margin + 3, 14, 14);
+  } catch (e) {
+    console.warn('Failed to embed right logo in PDF:', e);
+  }
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(14, 56, 104);
+  doc.text(EVENT_DETAILS.hostInstitute, pageWidth - margin - 19, margin + 9, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 100, 100);
+  doc.text('Host Institute & Nodal Center', pageWidth - margin - 19, margin + 12.5, { align: 'right' });
+
+  // Build Table Body
+  const slotMap = new Map();
+  judgesList.forEach((j) => slotMap.set(j.slotKey, j));
+
+  const tableBody = JUDGE_SLOTS.map((slot, idx) => {
+    const judge = slotMap.get(slot.slotKey);
+    const isChair = slot.role === 'CHAIRPERSON';
+    const isReserve = slot.role === 'RESERVE_JURY_MEMBER';
+    const rowBg = isChair ? [254, 252, 232] : isReserve ? [250, 245, 255] : idx % 2 === 0 ? [255, 253, 247] : [240, 247, 255];
+
+    const roleText = `${slot.label.toUpperCase()}`;
+    const nameText = judge?.name ? `${judge.name.toUpperCase()}\nPh: ${judge.contact || '-'}\n${judge.email || ''}` : '[VACANT / UNASSIGNED]';
+    const orgText = judge?.organisation ? `${judge.designation.toUpperCase()}\n${judge.organisation.toUpperCase()}\n(${judge.organisationLocation || '-'})` : '-';
+    const domainText = judge?.domain ? judge.domain.toUpperCase() : '-';
+
+    return [
+      { content: String(idx + 1), styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: rowBg } },
+      { content: roleText, styles: { halign: 'left', valign: 'middle', fontStyle: 'bold', fillColor: rowBg } },
+      { content: nameText, styles: { halign: 'left', valign: 'middle', fillColor: rowBg } },
+      { content: orgText, styles: { halign: 'left', valign: 'middle', fillColor: rowBg } },
+      { content: domainText, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: rowBg } },
+      { content: '', styles: { minCellHeight: 14, fillColor: [255, 255, 255] } }, // Reporting In-Time
+      { content: '', styles: { minCellHeight: 14, fillColor: [255, 255, 255] } }, // Physical Signature (Blank)
+      { content: '', styles: { minCellHeight: 14, fillColor: [255, 255, 255] } }  // Remarks
+    ];
+  });
+
+  autoTable(doc, {
+    startY: margin + 23,
+    margin: { left: 11, right: 11 },
+    tableWidth: 275,
+    head: [
+      [
+        { content: 'Sr.\nNo.', styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Jury Designation / Role', styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Judge Full Name & Contact No.', styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Designation, Organisation & Location', styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Domain Specialization', styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Reporting\nIn-Time', styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Attendance / Physical Signature', styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Remarks', styles: { halign: 'center', valign: 'middle' } }
+      ]
+    ],
+    body: tableBody,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [14, 56, 104],
+      textColor: [255, 255, 255],
+      fontSize: 7.2,
+      fontStyle: 'bold',
+      lineWidth: 0.15,
+      lineColor: [148, 163, 184]
+    },
+    bodyStyles: {
+      fontSize: 6.8,
+      cellPadding: { top: 2, bottom: 2, left: 1, right: 1 },
+      lineWidth: 0.15,
+      lineColor: [203, 213, 225],
+      textColor: [15, 23, 42]
+    },
+    columnStyles: {
+      0: { cellWidth: 9 },   // Sr. No.
+      1: { cellWidth: 32 },  // Role
+      2: { cellWidth: 44 },  // Name & Contact
+      3: { cellWidth: 54 },  // Designation & Org
+      4: { cellWidth: 40 },  // Domain
+      5: { cellWidth: 20 },  // Reporting In-Time
+      6: { cellWidth: 44 },  // Attendance (Signature) - 44mm wide!
+      7: { cellWidth: 32 }   // Remarks
+    }
+  });
+
+  // Footer Signatures
+  const footerY = pageHeight - margin - 16;
+  doc.setDrawColor(180, 180, 180);
+  doc.setLineDashPattern([1.5, 1.5], 0);
+  doc.line(margin + 12, footerY, margin + 64, footerY);
+  doc.line(pageWidth / 2 - 27, footerY, pageWidth / 2 + 27, footerY);
+  doc.line(pageWidth - margin - 64, footerY, pageWidth - margin - 12, footerY);
+  doc.setLineDashPattern([], 0);
+
+  const leftX = margin + 38;
+  const centerX = pageWidth / 2;
+  const rightX = pageWidth - margin - 38;
+
+  // Line 1: Primary Titles
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.8);
+  doc.setTextColor(15, 23, 42);
+  doc.text('Chairperson, Jury Board', leftX, footerY + 3.8, { align: 'center' });
+  doc.text('Nodal Officer', centerX, footerY + 3.8, { align: 'center' });
+  doc.text('Principal', rightX, footerY + 3.8, { align: 'center' });
+
+  // Line 2: Subtitles / Role Affiliations
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.2);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Evaluation Jury Board', leftX, footerY + 7.0, { align: 'center' });
+  doc.text('Bathinda Cluster', centerX, footerY + 7.0, { align: 'center' });
+  doc.text('Host Institute, Bathinda Cluster', rightX, footerY + 7.0, { align: 'center' });
+
+  // Line 3: College Name for Host Institute
+  doc.setFontSize(5.8);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Government Polytechnic College, Bathinda', rightX, footerY + 10.0, { align: 'center' });
+
+  // Sub-footer
+  doc.setFontSize(6.5);
+  doc.setTextColor(120, 120, 120);
+  doc.text(`Punjab Polytechnic Innovation Challenge- 2026-27 • ${EVENT_DETAILS.cluster} • Host: ${EVENT_DETAILS.hostInstitute}`, margin + 5, pageHeight - margin - 3);
+  doc.text('Official Evaluation Jury Board Attendance Record', pageWidth - margin - 5, pageHeight - margin - 3, { align: 'right' });
+
+  const fname = filename || `Jury_Attendance_Sheet_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
+  doc.save(fname);
 };
