@@ -2,6 +2,7 @@ import express from 'express';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
 // Load .env variables if not already present in environment
 function loadEnvFile() {
@@ -243,6 +244,197 @@ router.post('/delete-submission', async (req, res) => {
     });
   } catch (err) {
     console.error('Delete submission error:', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 5. POST /api/admin/update-submission
+router.post('/update-submission', async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.replace(/^Bearer\s+/, '').trim();
+
+    if (!verifyAdminToken(token)) {
+      return res.status(401).json({ success: false, message: 'Unauthorized session.' });
+    }
+
+    const { submissionId, instituteName, principalName, principalContact, teams } = req.body || {};
+    if (!submissionId) {
+      return res.status(400).json({ success: false, message: 'Submission ID is required.' });
+    }
+
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) {
+      return res.status(500).json({ success: false, message: 'Supabase credentials missing.' });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch existing submission
+    const { data: existingSub, error: fetchErr } = await supabase
+      .from('cluster_submissions')
+      .select('*, competition_teams(*, competition_students(*))')
+      .eq('id', submissionId)
+      .single();
+
+    if (fetchErr || !existingSub) {
+      return res.status(404).json({ success: false, message: 'Submission not found.' });
+    }
+
+    // Build updated raw_payload
+    const existingRaw = existingSub.raw_payload || {};
+    const updatedRawTeams = (teams || []).map((t, tIdx) => {
+      const existingRawTeam = existingRaw.teams?.[tIdx] || {};
+      const studentsList = t.students || t.competition_students || [];
+      return {
+        ...existingRawTeam,
+        teamNumber: t.teamNumber || t.team_number || tIdx + 1,
+        projectTitle: (t.projectTitle || t.project_title || '').trim(),
+        projectTheme: t.projectTheme || t.project_theme || 'Others',
+        projectThemeOther: (t.projectThemeOther || t.project_theme_other || '').trim(),
+        mentorName: (t.mentorName || t.mentor_name || '').trim(),
+        mentorContact: (t.mentorContact || t.mentor_contact || '').trim(),
+        projectDescription: (t.projectDescription || t.project_description || '').trim(),
+        studentsCount: studentsList.length,
+        students: studentsList.map((st, sIdx) => ({
+          id: st.id || `student_${Date.now()}_${sIdx}`,
+          order: st.studentOrder || st.student_order || sIdx + 1,
+          name: (st.studentName || st.student_name || '').trim(),
+          registrationNo: (st.registrationNo || st.registration_no || '').trim(),
+          department: st.department || '',
+          departmentOther: st.departmentOther || st.department_other || '',
+          semester: st.semester || '',
+          contact: (st.contact || st.contact_number || '').trim(),
+          email: (st.email || '').trim().toLowerCase()
+        }))
+      };
+    });
+
+    const updatedRawPayload = {
+      ...existingRaw,
+      instituteName: (instituteName || existingSub.institute_name || '').trim(),
+      principalName: (principalName || existingSub.principal_name || '').trim(),
+      principalContact: (principalContact || existingSub.principal_contact || '').trim(),
+      teamsCount: updatedRawTeams.length,
+      teams: updatedRawTeams
+    };
+
+    // 1. Update cluster_submissions table
+    const { error: subErr } = await supabase
+      .from('cluster_submissions')
+      .update({
+        institute_name: updatedRawPayload.instituteName,
+        principal_name: updatedRawPayload.principalName,
+        principal_contact: updatedRawPayload.principalContact,
+        teams_count: updatedRawPayload.teamsCount,
+        raw_payload: updatedRawPayload
+      })
+      .eq('id', submissionId);
+
+    if (subErr) {
+      throw new Error(`Failed to update institute details: ${subErr.message}`);
+    }
+
+    // 2. Update each team and students
+    if (Array.isArray(teams)) {
+      for (let tIdx = 0; tIdx < teams.length; tIdx++) {
+        const t = teams[tIdx];
+        const teamId = t.id;
+        const studentsList = t.students || t.competition_students || [];
+
+        if (teamId) {
+          // Update team record
+          await supabase
+            .from('competition_teams')
+            .update({
+              project_title: (t.projectTitle || t.project_title || '').trim(),
+              mentor_name: (t.mentorName || t.mentor_name || '').trim(),
+              mentor_contact: (t.mentorContact || t.mentor_contact || '').trim(),
+              project_theme: t.projectTheme || t.project_theme || 'Others',
+              project_theme_other: (t.projectTheme === 'Others' || t.project_theme === 'Others')
+                ? (t.projectThemeOther || t.project_theme_other || '').trim()
+                : null,
+              project_description: (t.projectDescription || t.project_description || '').trim(),
+              students_count: studentsList.length
+            })
+            .eq('id', teamId);
+
+          // Update students
+          const currentStudentIds = new Set();
+          for (let sIdx = 0; sIdx < studentsList.length; sIdx++) {
+            const st = studentsList[sIdx];
+            const studentId = st.id;
+            const studentData = {
+              student_order: sIdx + 1,
+              student_name: (st.studentName || st.student_name || '').trim(),
+              registration_no: (st.registrationNo || st.registration_no || '').trim(),
+              department: st.department || '',
+              department_other: st.department === 'Others' ? (st.departmentOther || st.department_other || '').trim() : null,
+              contact_number: (st.contact || st.contact_number || '').trim(),
+              semester: st.semester || null,
+              email: (st.email || '').trim().toLowerCase() || null
+            };
+
+            if (studentId) {
+              currentStudentIds.add(studentId);
+              let { error: sUpErr } = await supabase
+                .from('competition_students')
+                .update(studentData)
+                .eq('id', studentId);
+
+              if (sUpErr && (sUpErr.code === '42703' || /semester|email/i.test(String(sUpErr.message)))) {
+                const { semester, email, ...fallback } = studentData;
+                await supabase.from('competition_students').update(fallback).eq('id', studentId);
+              }
+            } else {
+              // New student inserted
+              const insertData = {
+                ...studentData,
+                team_id: teamId,
+                submission_id: submissionId
+              };
+              let { data: newSt, error: sInErr } = await supabase
+                .from('competition_students')
+                .insert([insertData])
+                .select()
+                .single();
+
+              if (sInErr && (sInErr.code === '42703' || /semester|email/i.test(String(sInErr.message)))) {
+                const { semester, email, ...fallback } = insertData;
+                const retry = await supabase.from('competition_students').insert([fallback]).select().single();
+                if (retry.data?.id) currentStudentIds.add(retry.data.id);
+              } else if (newSt?.id) {
+                currentStudentIds.add(newSt.id);
+              }
+            }
+          }
+
+          // If any previous student was removed from this team
+          const existingStudentsForTeam = existingSub.competition_teams?.find(ct => ct.id === teamId)?.competition_students || [];
+          for (const est of existingStudentsForTeam) {
+            if (!currentStudentIds.has(est.id)) {
+              await supabase.from('competition_students').delete().eq('id', est.id);
+            }
+          }
+        }
+      }
+    }
+
+    // 3. Return refreshed complete submission record
+    const { data: updatedSub } = await supabase
+      .from('cluster_submissions')
+      .select('*, competition_teams(*, competition_students(*))')
+      .eq('id', submissionId)
+      .single();
+
+    return res.json({
+      success: true,
+      data: updatedSub,
+      message: 'Submission successfully updated!'
+    });
+  } catch (err) {
+    console.error('Update submission error:', err);
     return res.status(500).json({ success: false, message: err.message });
   }
 });

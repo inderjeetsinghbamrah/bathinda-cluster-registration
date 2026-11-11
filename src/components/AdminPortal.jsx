@@ -26,11 +26,13 @@ import {
   ChevronUp,
   ClipboardCheck,
   FileText,
-  ArrowUpDown
+  ArrowUpDown,
+  Pencil
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AttendanceSheet } from './AttendanceSheet';
 import { ReorderTableView } from './ReorderTableView';
+import { EditSubmissionModal } from './EditSubmissionModal';
 
 export const AdminPortal = () => {
   const [token, setToken] = useState(() => localStorage.getItem('cluster_admin_token') || '');
@@ -60,6 +62,7 @@ export const AdminPortal = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedSubmissionIds, setSelectedSubmissionIds] = useState(new Set());
   const [actionSuccessMessage, setActionSuccessMessage] = useState('');
+  const [editingSubmission, setEditingSubmission] = useState(null);
 
   const FROZEN_EMAIL = 'inderjeetsinghit@gmail.com';
 
@@ -823,12 +826,20 @@ export const AdminPortal = () => {
             submissions={submissions}
             onBack={() => setViewMode('institutes')}
             onOpenReorder={() => setViewMode('reorder')}
+            onEditSubmission={(subId) => {
+              const sub = submissions.find((s) => s.id === subId);
+              if (sub) setEditingSubmission(sub);
+            }}
           />
         ) : viewMode === 'reorder' ? (
           <ReorderTableView
             submissions={submissions}
             onOpenAttendance={() => setViewMode('attendance')}
             onBack={() => setViewMode('institutes')}
+            onEditSubmission={(subId) => {
+              const sub = submissions.find((s) => s.id === subId);
+              if (sub) setEditingSubmission(sub);
+            }}
           />
         ) : viewMode === 'institutes' ? (
           <div className="space-y-4">
@@ -938,6 +949,17 @@ export const AdminPortal = () => {
                           <span>Attendance</span>
                         </button>
 
+                        {/* Edit Submission Button */}
+                        <button
+                          type="button"
+                          onClick={() => setEditingSubmission(sub)}
+                          className="px-2.5 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer no-print shadow-2xs"
+                          title="Edit institute, project, mentor, and student entries"
+                        >
+                          <Pencil className="w-3.5 h-3.5 text-amber-700" />
+                          <span>Edit Entry</span>
+                        </button>
+
                         {/* Delete Authority Button */}
                         <button
                           type="button"
@@ -946,7 +968,7 @@ export const AdminPortal = () => {
                           title="Delete this entire institute submission"
                         >
                           <Trash2 className="w-3.5 h-3.5 text-red-600" />
-                          <span>Delete Entry</span>
+                          <span>Delete</span>
                         </button>
                       </div>
                     </div>
@@ -1083,17 +1105,30 @@ export const AdminPortal = () => {
                         <td className="p-3 text-slate-600 text-xs truncate max-w-[170px]" title={r.studentEmail}>{r.studentEmail}</td>
                         <td className="p-3 font-mono text-xs text-slate-700 whitespace-nowrap">{r.studentContact}</td>
                         <td className="p-3 text-center no-print">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const sub = submissions.find((s) => s.id === r.submissionId);
-                              if (sub) openDeleteSingleModal(sub);
-                            }}
-                            className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition cursor-pointer"
-                            title="Delete this entire institute submission"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const sub = submissions.find((s) => s.id === r.submissionId);
+                                if (sub) setEditingSubmission(sub);
+                              }}
+                              className="p-1.5 rounded-lg text-amber-600 hover:text-amber-800 hover:bg-amber-50 transition cursor-pointer"
+                              title="Edit this submission entry"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const sub = submissions.find((s) => s.id === r.submissionId);
+                                if (sub) openDeleteSingleModal(sub);
+                              }}
+                              className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition cursor-pointer"
+                              title="Delete this entire institute submission"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -1158,6 +1193,19 @@ export const AdminPortal = () => {
           </div>
         </div>
       )}
+      {/* EDIT SUBMISSION MODAL */}
+      <EditSubmissionModal
+        isOpen={Boolean(editingSubmission)}
+        submission={editingSubmission}
+        authToken={token}
+        onClose={() => setEditingSubmission(null)}
+        onSave={(updatedSub) => {
+          setSubmissions((prev) =>
+            prev.map((s) => (s.id === updatedSub.id ? updatedSub : s))
+          );
+          setActionSuccessMessage(`Successfully updated entry for ${updatedSub.institute_name}`);
+        }}
+      />
     </div>
   );
 };

@@ -20,7 +20,8 @@ import {
   Users,
   Award,
   Hash,
-  ArrowLeft
+  ArrowLeft,
+  Pencil
 } from 'lucide-react';
 import {
   formatAttendanceData,
@@ -35,7 +36,8 @@ import {
 export const ReorderTableView = ({
   submissions = [],
   onOpenAttendance = null,
-  onBack = null
+  onBack = null,
+  onEditSubmission = null
 }) => {
   const [customKeys, setCustomKeys] = useState(() => loadCustomTeamOrder());
   const [orderedTeams, setOrderedTeams] = useState(() => {
@@ -441,13 +443,14 @@ export const ReorderTableView = ({
                 <th className="p-3">Thematic Domain</th>
                 <th className="p-3">Faculty Mentor</th>
                 <th className="p-3">Enrolled Students</th>
+                <th className="p-3 w-16 text-center">Action</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-slate-200 text-slate-800">
               {displayTeams.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="p-12 text-center text-slate-400 font-semibold text-sm">
+                  <td colSpan={11} className="p-12 text-center text-slate-400 font-semibold text-sm">
                     No project entries found matching your search.
                   </td>
                 </tr>
@@ -631,6 +634,20 @@ export const ReorderTableView = ({
                             </div>
                           ))}
                         </div>
+                      </td>
+
+                      {/* Action / Edit */}
+                      <td className="p-2.5 text-center">
+                        {onEditSubmission && (
+                          <button
+                            type="button"
+                            onClick={() => onEditSubmission(team.submissionId)}
+                            className="p-1.5 rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer"
+                            title="Edit this submission entry"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
