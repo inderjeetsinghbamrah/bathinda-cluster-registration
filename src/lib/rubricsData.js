@@ -824,51 +824,84 @@ export const generateBatchAllTeamsScoreSheetsPdf = (teamsList = [], filename = n
 };
 
 /**
- * Generates Consolidated Jury Master Scoring Matrix (All Teams Landscape Sheet)
+ * Generates Master Scoring Matrix PDF:
+ * Page 1: Single master table with all 17 projects, each with 20 numbered sub-criteria columns (1.1 to 4.5),
+ *         Total / 50, Rank, and official Jury Signatures.
+ * Pages 2 & 3: Elaborated Rubric Guide explaining all 20 criteria in full detail.
  */
 export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = null) => {
   const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
-    format: 'a4'
+    format: 'a4',
+    compress: true
   });
 
+  const pageWidth = 297;
+  const pageHeight = 210;
+
+  // ==========================================
+  // PAGE 1: MASTER EVALUATION TABLE (ALL TEAMS)
+  // ==========================================
   const startY = renderPdfHeader(
     doc,
-    'Official Consolidated Jury Evaluation & Master Ranking Matrix (50 Marks)',
-    '',
+    'Official Master Jury Evaluation & Scoring Matrix (All Projects)',
+    'Cluster-Level Competition – 20 Sub-Criteria Comprehensive Scoring (Max 50 Marks)',
     true
   );
 
+  // Table Body Rows (All Teams with 20 sub-criteria blank score cells)
   const tableRows = teamsList.map((team, idx) => [
     String(idx + 1),
     team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
     String(team.projectTitle || '').toUpperCase(),
-    '', // Param 1 (out of 15)
-    '', // Param 2 (out of 15)
-    '', // Param 3 (out of 10)
-    '', // Param 4 (out of 10)
-    '', // Total (out of 50)
+    '', '', '', '', '', // 1.1 to 1.5
+    '', '', '', '', '', // 2.1 to 2.5
+    '', '', '', '', '', // 3.1 to 3.5
+    '', '', '', '', '', // 4.1 to 4.5
+    '', // Total (50)
     '', // Rank
-    ''  // Signature
+    ''  // Jury Sign
   ]);
 
   autoTable(doc, {
-    startY: startY + 2,
-    margin: { left: 9, right: 9 },
-    tableWidth: 279,
+    startY: startY,
+    margin: { left: 6.5, right: 6.5 },
+    tableWidth: 284,
     head: [
       [
-        { content: 'Sr.', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Team\nCode', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Project Title of Innovation', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Param 1\n(15)', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Param 2\n(15)', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Param 3\n(10)', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Param 4\n(10)', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Total\n(50)', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Cluster\nRank', styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Jury Initials /\nValidation', styles: { halign: 'center', valign: 'middle' } }
+        { content: 'Sr.', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Team\nCode', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Project Title of Innovation', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+        { content: '1. Problem Understanding (15M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [14, 56, 104] } },
+        { content: '2. Punjab Fit & Use (15M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [11, 45, 84] } },
+        { content: '3. Polytechnic Innovation (10M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [14, 56, 104] } },
+        { content: '4. Prototype Plan (10M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [11, 45, 84] } },
+        { content: 'Total\n(50)', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [10, 37, 64] } },
+        { content: 'Rank', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+        { content: 'Jury\nSign', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } }
+      ],
+      [
+        { content: '1.1\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '1.2\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '1.3\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '1.4\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '1.5\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '2.1\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '2.2\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '2.3\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '2.4\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '2.5\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '3.1\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '3.2\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '3.3\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '3.4\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '3.5\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '4.1\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '4.2\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '4.3\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '4.4\n(2)', styles: { halign: 'center', fontSize: 5.2 } },
+        { content: '4.5\n(2)', styles: { halign: 'center', fontSize: 5.2 } }
       ]
     ],
     body: tableRows,
@@ -876,52 +909,202 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
     headStyles: {
       fillColor: [14, 56, 104],
       textColor: [255, 255, 255],
-      fontSize: 7,
+      fontSize: 6.2,
       fontStyle: 'bold',
       lineWidth: 0.15,
-      lineColor: [148, 163, 184]
+      lineColor: [148, 163, 184],
+      cellPadding: { top: 1.2, bottom: 1.2, left: 0.5, right: 0.5 }
     },
     bodyStyles: {
-      fontSize: 6.8,
+      fontSize: 6.5,
       lineColor: [203, 213, 225],
       lineWidth: 0.15,
       textColor: [15, 23, 42],
-      cellPadding: { top: 2, bottom: 2, left: 1.5, right: 1.5 }
+      cellPadding: { top: 1.5, bottom: 1.5, left: 0.6, right: 0.6 }
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252]
     },
     columnStyles: {
-      0: { cellWidth: 9, halign: 'center', fontStyle: 'bold' },
-      1: { cellWidth: 26, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
-      2: { cellWidth: 104, fontStyle: 'bold' },
-      3: { cellWidth: 18, halign: 'center' },
-      4: { cellWidth: 18, halign: 'center' },
-      5: { cellWidth: 18, halign: 'center' },
-      6: { cellWidth: 18, halign: 'center' },
-      7: { cellWidth: 22, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
-      8: { cellWidth: 18, halign: 'center', fontStyle: 'bold' },
-      9: { cellWidth: 28, halign: 'center' }
+      0: { cellWidth: 7, halign: 'center', fontStyle: 'bold' },
+      1: { cellWidth: 17, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
+      2: { cellWidth: 59, fontStyle: 'bold' },
+      3: { cellWidth: 8, halign: 'center' },
+      4: { cellWidth: 8, halign: 'center' },
+      5: { cellWidth: 8, halign: 'center' },
+      6: { cellWidth: 8, halign: 'center' },
+      7: { cellWidth: 8, halign: 'center' },
+      8: { cellWidth: 8, halign: 'center' },
+      9: { cellWidth: 8, halign: 'center' },
+      10: { cellWidth: 8, halign: 'center' },
+      11: { cellWidth: 8, halign: 'center' },
+      12: { cellWidth: 8, halign: 'center' },
+      13: { cellWidth: 8, halign: 'center' },
+      14: { cellWidth: 8, halign: 'center' },
+      15: { cellWidth: 8, halign: 'center' },
+      16: { cellWidth: 8, halign: 'center' },
+      17: { cellWidth: 8, halign: 'center' },
+      18: { cellWidth: 8, halign: 'center' },
+      19: { cellWidth: 8, halign: 'center' },
+      20: { cellWidth: 8, halign: 'center' },
+      21: { cellWidth: 8, halign: 'center' },
+      22: { cellWidth: 8, halign: 'center' },
+      23: { cellWidth: 14, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
+      24: { cellWidth: 11, halign: 'center', fontStyle: 'bold' },
+      25: { cellWidth: 16, halign: 'center' }
     }
   });
 
-  // Footer Signatures for all 5 core jury members
-  const finalY = doc.lastAutoTable.finalY + 3;
-  if (finalY < 190) {
+  // Footer: Signatures for Chairperson and Jury Panel
+  const finalY = doc.lastAutoTable.finalY + 2.5;
+  if (finalY < 192) {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
+    doc.setFontSize(6.8);
     doc.setTextColor(14, 56, 104);
-    doc.text('OFFICIAL JURY BOARD VALIDATION & ENDORSEMENT:', 12, finalY + 3);
+    doc.text('OFFICIAL JURY BOARD ENDORSEMENT & VALIDATION:', 10, finalY + 2.5);
 
-    const sigs = ['Chairperson, Jury Board', 'Jury Member 1 (Academic)', 'Jury Member 2 (Tech Lead)', 'Jury Member 3 (Industry)', 'Jury Member 4 (Prototype)'];
+    const sigs = [
+      'Chairperson, Jury Board',
+      'Jury Member 1 (Academic)',
+      'Jury Member 2 (Tech Leader)',
+      'Jury Member 3 (Industry)',
+      'Jury Member 4 (Prototype)',
+      'Reserve Jury Member 1',
+      'Reserve Jury Member 2'
+    ];
+    const boxW = 37;
     sigs.forEach((sig, sIdx) => {
-      const x = 12 + sIdx * 54;
-      doc.line(x, finalY + 12, x + 44, finalY + 12);
+      const x = 10 + sIdx * 39.5;
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineDashPattern([1, 1], 0);
+      doc.line(x, finalY + 10.5, x + boxW, finalY + 10.5);
+      doc.setLineDashPattern([], 0);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(5.8);
-      doc.setTextColor(80, 80, 80);
-      doc.text(sig, x + 22, finalY + 15, { align: 'center' });
+      doc.setFontSize(5.2);
+      doc.setTextColor(70, 70, 70);
+      doc.text(sig, x + boxW / 2, finalY + 13.5, { align: 'center' });
     });
   }
 
-  const outFname = filename || `Consolidated_Jury_Evaluation_Matrix_Bathinda_${EVENT_DETAILS.eventDate}.pdf`;
+  // Footer note on Page 1 pointing to elaborated criteria
+  doc.setFontSize(6);
+  doc.setTextColor(120, 120, 120);
+  doc.text(
+    `* Note: See Pages 2 & 3 for complete elaborated descriptions and scoring levels (0, 1, 2, 3) for all 20 Sub-Criteria (1.1 through 4.5).`,
+    10,
+    pageHeight - 5
+  );
+  doc.text(`Page 1 of 3 (Master Scoring Matrix)`, pageWidth - 10, pageHeight - 5, { align: 'right' });
+
+  // ==========================================
+  // PAGES 2 & 3: ALL CRITERIA ELABORATED GUIDE
+  // ==========================================
+  const rubricsPages = [
+    {
+      pageNo: 2,
+      totalPages: 3,
+      title: 'Official Rubric Criteria Elaboration – Part A: Problem Understanding & Punjab Context',
+      parameters: EVALUATION_PARAMETERS.slice(0, 2)
+    },
+    {
+      pageNo: 3,
+      totalPages: 3,
+      title: 'Official Rubric Criteria Elaboration – Part B: Polytechnic Innovation & Prototype Plan',
+      parameters: EVALUATION_PARAMETERS.slice(2, 4)
+    }
+  ];
+
+  rubricsPages.forEach((pg) => {
+    doc.addPage('a4', 'landscape');
+    const startYRubric = renderPdfHeader(doc, pg.title, '', true);
+
+    const rubricRows = [];
+    pg.parameters.forEach((param) => {
+      rubricRows.push([
+        {
+          content: `${param.title.toUpperCase()} (MAX MARKS: ${param.maxMarks})`,
+          colSpan: 8,
+          styles: {
+            fillColor: [14, 56, 104],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            halign: 'left',
+            fontSize: 7.2
+          }
+        }
+      ]);
+
+      param.subParameters.forEach((sp) => {
+        rubricRows.push([
+          String(sp.number),
+          param.shortTitle,
+          sp.title,
+          String(sp.maxMarks),
+          sp.descriptors[0],
+          sp.descriptors[1],
+          sp.descriptors[2],
+          sp.descriptors[3]
+        ]);
+      });
+    });
+
+    autoTable(doc, {
+      startY: startYRubric,
+      margin: { left: 9, right: 9 },
+      tableWidth: 279,
+      head: [
+        [
+          { content: 'No.', styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Evaluation Parameter', styles: { halign: 'left', valign: 'middle' } },
+          { content: 'Sub-parameter Description', styles: { halign: 'left', valign: 'middle' } },
+          { content: 'Max\nMarks', styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Score 0', styles: { halign: 'left', valign: 'middle' } },
+          { content: 'Score 1', styles: { halign: 'left', valign: 'middle' } },
+          { content: 'Score 2', styles: { halign: 'left', valign: 'middle' } },
+          { content: 'Score 3', styles: { halign: 'left', valign: 'middle' } }
+        ]
+      ],
+      body: rubricRows,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [14, 56, 104],
+        textColor: [255, 255, 255],
+        fontSize: 6.8,
+        fontStyle: 'bold',
+        lineWidth: 0.15,
+        lineColor: [148, 163, 184]
+      },
+      bodyStyles: {
+        fontSize: 5.8,
+        lineColor: [203, 213, 225],
+        lineWidth: 0.15,
+        textColor: [15, 23, 42],
+        cellPadding: { top: 1.2, bottom: 1.2, left: 1.2, right: 1.2 }
+      },
+      columnStyles: {
+        0: { cellWidth: 8, halign: 'center', fontStyle: 'bold' },
+        1: { cellWidth: 28, fontStyle: 'bold' },
+        2: { cellWidth: 42, fontStyle: 'bold' },
+        3: { cellWidth: 12, halign: 'center', fontStyle: 'bold' },
+        4: { cellWidth: 46 },
+        5: { cellWidth: 48 },
+        6: { cellWidth: 48 },
+        7: { cellWidth: 47 }
+      }
+    });
+
+    // Sub-footer on criteria pages
+    doc.setFontSize(6.2);
+    doc.setTextColor(110, 110, 110);
+    doc.text(
+      `Punjab Polytechnic Innovation Challenge • Official 50-Mark Rubric Reference • Page ${pg.pageNo} of ${pg.totalPages}`,
+      10,
+      pageHeight - 5
+    );
+    doc.text(`Host Center: ${EVENT_DETAILS.hostInstitute}`, pageWidth - 10, pageHeight - 5, { align: 'right' });
+  });
+
+  const outFname = filename || `Master_Jury_Scoring_Matrix_All_Projects_Bathinda_${EVENT_DETAILS.eventDate}.pdf`;
   doc.save(outFname);
 };
 
@@ -931,7 +1114,39 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
 export const exportRubricsToExcel = (teamsList = []) => {
   const wb = XLSX.utils.book_new();
 
-  // Tab 1: Official Rubrics Matrix (20 Sub-parameters)
+  // Tab 1: Master Scoring Matrix (All Projects with 20 Criteria Columns)
+  const masterMatrixRows = (teamsList || []).map((team, idx) => ({
+    'Sr. No.': idx + 1,
+    'Team Code': team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
+    'Project Title of Innovation': team.projectTitle,
+    '1.1 Clarity of problem definition (3)': '',
+    '1.2 Identification of root causes (3)': '',
+    '1.3 Understanding affected stakeholders (3)': '',
+    '1.4 Existing solutions and gaps (3)': '',
+    '1.5 Evidence and validation (3)': '',
+    '2.1 Relevance to Punjab needs (3)': '',
+    '2.2 Potential benefits to users (3)': '',
+    '2.3 Suitability to local conditions (3)': '',
+    '2.4 Affordability and accessibility (3)': '',
+    '2.5 Adoption and wider applicability (3)': '',
+    '3.1 Originality of proposed idea (2)': '',
+    '3.2 Creative application of tech (2)': '',
+    '3.3 Technical ingenuity & design (2)': '',
+    '3.4 Resource-efficient innovation (2)': '',
+    '3.5 Distinctiveness & value addition (2)': '',
+    '4.1 Prototype design clarity (2)': '',
+    '4.2 Technical feasibility (2)': '',
+    '4.3 Resources & materials (2)': '',
+    '4.4 Development timeline (2)': '',
+    '4.5 Testing & improvement plan (2)': '',
+    'Total Score (50)': '',
+    'Cluster Rank': '',
+    'Jury Signature / Remarks': ''
+  }));
+  const wsMaster = XLSX.utils.json_to_sheet(masterMatrixRows);
+  XLSX.utils.book_append_sheet(wb, wsMaster, 'Master Scoring Matrix (20)');
+
+  // Tab 2: Official Rubrics Matrix (20 Sub-parameters)
   const rubricsData = RUBRICS_FLAT_LIST.map((r) => ({
     'No.': r.number,
     'Evaluation Parameter': r.parameterTitle,
@@ -945,28 +1160,5 @@ export const exportRubricsToExcel = (teamsList = []) => {
   const wsRubrics = XLSX.utils.json_to_sheet(rubricsData);
   XLSX.utils.book_append_sheet(wb, wsRubrics, 'Rubrics & Descriptors (50)');
 
-  // Tab 2: Consolidated Scoring Sheet (All Teams)
-  const scoringData = (teamsList || []).map((t, idx) => ({
-    'Sr. No.': idx + 1,
-    'Submission Code': t.submissionCode,
-    'Project Title': t.projectTitle,
-    'Institute Name': t.instituteName,
-    'Mentor Name': t.mentorName,
-    'Mentor Contact': t.mentorContact,
-    'Theme': t.theme?.name || t.projectTheme,
-    'Students': t.students?.map((s) => s.name).join(', '),
-    'Param 1: Problem Understanding (15)': '',
-    'Param 2: Punjab Context & Fit (15)': '',
-    'Param 3: Polytechnic Innovation (10)': '',
-    'Param 4: Prototype Plan (10)': '',
-    'Total Score (50)': '',
-    'Percentage (%)': '',
-    'Cluster Rank': '',
-    'Evaluating Judge': '',
-    'Remarks': ''
-  }));
-  const wsScoring = XLSX.utils.json_to_sheet(scoringData);
-  XLSX.utils.book_append_sheet(wb, wsScoring, 'Consolidated Scoresheet');
-
-  XLSX.writeFile(wb, `Official_Jury_Evaluation_Rubrics_Bathinda_${EVENT_DETAILS.eventDate}.xlsx`);
+  XLSX.writeFile(wb, `Master_Jury_Scoring_Matrix_Bathinda_${EVENT_DETAILS.eventDate}.xlsx`);
 };

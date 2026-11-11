@@ -45,7 +45,7 @@ export const JuryRubricsSection = ({
   formattedTeams = [],
   onPrint = null
 }) => {
-  const [subView, setSubView] = useState('descriptors'); // 'descriptors' | 'sheet_preview' | 'live_scoring'
+  const [subView, setSubView] = useState('master_matrix'); // 'master_matrix' | 'descriptors' | 'sheet_preview' | 'live_scoring'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParamFilter, setSelectedParamFilter] = useState('All');
   const [selectedTeamCode, setSelectedTeamCode] = useState(() => {
@@ -54,6 +54,7 @@ export const JuryRubricsSection = ({
   const [selectedJudgeSlot, setSelectedJudgeSlot] = useState('chairperson_1');
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [saveSuccessMessage, setSaveSuccessMessage] = useState('');
+  const [showElaboratedGuide, setShowElaboratedGuide] = useState(true);
 
   // Local storage for live evaluations: { [teamCode]: { [judgeSlot]: { scores: {}, remarks: '', updatedAt: '' } } }
   const [evaluations, setEvaluations] = useState(() => {
@@ -265,16 +266,40 @@ export const JuryRubricsSection = ({
               <span>Blank Sheet (PDF)</span>
             </button>
 
+            {/* Master Scoring Matrix Single PDF */}
+            <button
+              type="button"
+              onClick={handleDownloadMasterMatrix}
+              disabled={isExportingPdf || formattedTeams.length === 0}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 active:scale-95 text-white text-xs font-extrabold flex items-center gap-2 shadow-sm transition cursor-pointer disabled:opacity-50"
+              title="Download Master Score Sheet: 1 unified table for all 17 projects with 20 sub-criteria columns + full criteria elaborated at end"
+            >
+              <Trophy className="w-4 h-4 text-amber-300" />
+              <span>Master Score Sheet (Single PDF)</span>
+            </button>
+
             {/* All Teams Booklet PDF */}
             <button
               type="button"
               onClick={handleDownloadAllSheets}
               disabled={isExportingPdf || formattedTeams.length === 0}
-              className="px-3.5 py-2 rounded-xl bg-[#0e3868] hover:bg-blue-950 active:scale-95 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-xs transition cursor-pointer disabled:opacity-50"
-              title="Download all project score sheets in 1 multi-page PDF (Only Team Code & Project Title)"
+              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer disabled:opacity-50"
+              title="Download individual score sheets (1 page per project)"
             >
-              <Download className="w-3.5 h-3.5 text-amber-300" />
-              <span>All Projects in Single PDF</span>
+              <Download className="w-3.5 h-3.5 text-blue-300" />
+              <span>Individual Sheets Booklet</span>
+            </button>
+
+            {/* Blank Sheet Template */}
+            <button
+              type="button"
+              onClick={handleDownloadBlankSheet}
+              disabled={isExportingPdf}
+              className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+              title="Download Blank Physical Score Sheet Template (Landscape A4)"
+            >
+              <FileText className="w-3.5 h-3.5 text-slate-500" />
+              <span>Blank Template</span>
             </button>
 
             {/* Rubrics Reference Guide PDF */}
@@ -282,23 +307,11 @@ export const JuryRubricsSection = ({
               type="button"
               onClick={handleDownloadRubricsGuide}
               disabled={isExportingPdf}
-              className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 border border-slate-300 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+              className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
               title="Download Official 2-Page Rubrics Descriptors Guide (Landscape A4)"
             >
-              <FileText className="w-3.5 h-3.5 text-slate-600" />
-              <span>Rubrics Guide (PDF)</span>
-            </button>
-
-            {/* Consolidated Ranking Matrix PDF */}
-            <button
-              type="button"
-              onClick={handleDownloadMasterMatrix}
-              disabled={isExportingPdf || formattedTeams.length === 0}
-              className="px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
-              title="Download Consolidated Ranking Matrix for all teams"
-            >
-              <Trophy className="w-3.5 h-3.5 text-purple-600" />
-              <span>Master Matrix (PDF)</span>
+              <Layers className="w-3.5 h-3.5 text-slate-500" />
+              <span>Rubrics Guide</span>
             </button>
 
             {/* Excel Export */}
@@ -306,7 +319,7 @@ export const JuryRubricsSection = ({
               type="button"
               onClick={() => exportRubricsToExcel(formattedTeams)}
               className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
-              title="Export Rubrics & Scoresheet to Excel (.xlsx)"
+              title="Export Master Matrix & 20 Criteria to Excel (.xlsx)"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
               <span>Excel</span>
@@ -317,6 +330,19 @@ export const JuryRubricsSection = ({
         {/* Row 2: Sub-View Selector Tabs */}
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setSubView('master_matrix')}
+              className={`px-3.5 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                subView === 'master_matrix'
+                  ? 'bg-blue-900 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Trophy className="w-3.5 h-3.5 text-amber-300" />
+              <span>Master Scoring Matrix (Single Table)</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setSubView('descriptors')}
@@ -340,7 +366,7 @@ export const JuryRubricsSection = ({
               }`}
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Printable Score Sheet Preview</span>
+              <span>Project Score Sheet</span>
             </button>
 
             <button
@@ -353,7 +379,7 @@ export const JuryRubricsSection = ({
               }`}
             >
               <Calculator className="w-3.5 h-3.5 text-amber-300" />
-              <span>Interactive Live Scoring</span>
+              <span>Live Evaluation</span>
             </button>
           </div>
 
@@ -378,6 +404,293 @@ export const JuryRubricsSection = ({
           </div>
         </div>
       </div>
+
+      {/* ============================================================================== */}
+      {/* SUB-VIEW 0: MASTER JURY SCORING MATRIX (SINGLE TABLE FOR ALL PROJECTS)        */}
+      {/* ============================================================================== */}
+      {subView === 'master_matrix' && (
+        <div className="w-full max-w-[1240px] space-y-4">
+          {/* Header Action Bar */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-2xs">
+                <Trophy className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-black text-slate-900 text-sm">
+                  Master Jury Scoring Matrix &bull; All 17 Projects in Single Table
+                </h3>
+                <p className="text-slate-500 text-[11px] font-medium">
+                  All 20 Sub-Criteria numbered 1.1 through 4.5 in a single unified grid &bull; Max 50 Marks
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleDownloadMasterMatrix}
+                disabled={isExportingPdf || formattedTeams.length === 0}
+                className="px-3.5 py-2 rounded-xl bg-[#0e3868] hover:bg-blue-950 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5 text-amber-300" />
+                <span>Download Master Score Sheet (PDF)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => exportRubricsToExcel(formattedTeams)}
+                className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
+                <span>Excel</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Table Container */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  {/* Tier 1 Header: Main Parameters */}
+                  <tr className="bg-[#0e3868] text-white uppercase text-[10px] font-extrabold tracking-wider border-b border-blue-950 text-center">
+                    <th rowSpan={2} className="py-2.5 px-2 w-10 border-r border-blue-900 align-middle">
+                      Sr.
+                    </th>
+                    <th rowSpan={2} className="py-2.5 px-2 w-24 border-r border-blue-900 align-middle">
+                      Team Code
+                    </th>
+                    <th rowSpan={2} className="py-2.5 px-3 min-w-[200px] border-r border-blue-900 align-middle text-left">
+                      Project Title of Innovation
+                    </th>
+                    <th colSpan={5} className="py-2 px-1 border-r border-blue-900 bg-[#0e3868]">
+                      1. Problem Understanding (15M)
+                    </th>
+                    <th colSpan={5} className="py-2 px-1 border-r border-blue-900 bg-[#0b2d54]">
+                      2. Punjab Context &amp; Fit (15M)
+                    </th>
+                    <th colSpan={5} className="py-2 px-1 border-r border-blue-900 bg-[#0e3868]">
+                      3. Innovation (10M)
+                    </th>
+                    <th colSpan={5} className="py-2 px-1 border-r border-blue-900 bg-[#0b2d54]">
+                      4. Prototype Plan (10M)
+                    </th>
+                    <th rowSpan={2} className="py-2.5 px-2 w-16 border-r border-blue-900 bg-[#081e36] align-middle">
+                      Total
+                      <br />
+                      <span className="text-[8px] font-normal lowercase opacity-80">(50M)</span>
+                    </th>
+                    <th rowSpan={2} className="py-2.5 px-2 w-16 align-middle text-center">
+                      Action
+                    </th>
+                  </tr>
+
+                  {/* Tier 2 Header: 20 Sub-Criteria Numbered 1.1 to 4.5 */}
+                  <tr className="bg-[#0b2d54] text-white text-[9px] font-bold text-center border-b border-blue-950">
+                    {/* 1.1 to 1.5 (Max 3) */}
+                    <th className="py-1 px-1 border-r border-blue-900 w-8" title="1.1 Clarity of problem definition (Max 3)">1.1<br/><span className="text-[7.5px] opacity-75 font-normal">(3)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8" title="1.2 Identification of root causes (Max 3)">1.2<br/><span className="text-[7.5px] opacity-75 font-normal">(3)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8" title="1.3 Understanding affected stakeholders (Max 3)">1.3<br/><span className="text-[7.5px] opacity-75 font-normal">(3)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8" title="1.4 Existing solutions and gaps (Max 3)">1.4<br/><span className="text-[7.5px] opacity-75 font-normal">(3)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8" title="1.5 Evidence and validation (Max 3)">1.5<br/><span className="text-[7.5px] opacity-75 font-normal">(3)</span></th>
+
+                    {/* 2.1 to 2.5 (Max 3) */}
+                    <th className="py-1 px-1 border-r border-blue-900 w-8 bg-[#09223e]" title="2.1 Relevance to Punjab needs (Max 3)">2.1<br/><span className="text-[7.5px] opacity-75 font-normal">(3)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8 bg-[#09223e]" title="2.2 Potential benefits to users (Max 3)">2.2<br/><span className="text-[7.5px] opacity-75 font-normal">(3)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8 bg-[#09223e]" title="2.3 Suitability to local conditions (Max 3)">2.3<br/><span className="text-[7.5px] opacity-75 font-normal">(3)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8 bg-[#09223e]" title="2.4 Affordability and accessibility (Max 3)">2.4<br/><span className="text-[7.5px] opacity-75 font-normal">(3)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8 bg-[#09223e]" title="2.5 Adoption and wider applicability (Max 3)">2.5<br/><span className="text-[7.5px] opacity-75 font-normal">(3)</span></th>
+
+                    {/* 3.1 to 3.5 (Max 2) */}
+                    <th className="py-1 px-1 border-r border-blue-900 w-8" title="3.1 Originality of proposed idea (Max 2)">3.1<br/><span className="text-[7.5px] opacity-75 font-normal">(2)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8" title="3.2 Creative application of tech (Max 2)">3.2<br/><span className="text-[7.5px] opacity-75 font-normal">(2)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8" title="3.3 Technical ingenuity & design (Max 2)">3.3<br/><span className="text-[7.5px] opacity-75 font-normal">(2)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8" title="3.4 Resource-efficient innovation (Max 2)">3.4<br/><span className="text-[7.5px] opacity-75 font-normal">(2)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8" title="3.5 Distinctiveness & value addition (Max 2)">3.5<br/><span className="text-[7.5px] opacity-75 font-normal">(2)</span></th>
+
+                    {/* 4.1 to 4.5 (Max 2) */}
+                    <th className="py-1 px-1 border-r border-blue-900 w-8 bg-[#09223e]" title="4.1 Prototype design clarity (Max 2)">4.1<br/><span className="text-[7.5px] opacity-75 font-normal">(2)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8 bg-[#09223e]" title="4.2 Technical feasibility (Max 2)">4.2<br/><span className="text-[7.5px] opacity-75 font-normal">(2)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8 bg-[#09223e]" title="4.3 Resources & materials (Max 2)">4.3<br/><span className="text-[7.5px] opacity-75 font-normal">(2)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8 bg-[#09223e]" title="4.4 Development timeline (Max 2)">4.4<br/><span className="text-[7.5px] opacity-75 font-normal">(2)</span></th>
+                    <th className="py-1 px-1 border-r border-blue-900 w-8 bg-[#09223e]" title="4.5 Testing & improvement plan (Max 2)">4.5<br/><span className="text-[7.5px] opacity-75 font-normal">(2)</span></th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-slate-200">
+                  {formattedTeams.length === 0 ? (
+                    <tr>
+                      <td colSpan={26} className="p-8 text-center text-slate-400 font-semibold">
+                        No projects registered yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    formattedTeams.map((team, tIdx) => {
+                      const teamScores = evaluations[team.submissionCode]?.[selectedJudgeSlot]?.scores || {};
+                      let totalScored = 0;
+                      let hasScores = false;
+                      RUBRICS_FLAT_LIST.forEach((sp) => {
+                        const val = teamScores[sp.id];
+                        if (val !== undefined && val !== null && val !== '') {
+                          totalScored += Number(val);
+                          hasScores = true;
+                        }
+                      });
+
+                      const rowBg = tIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
+
+                      return (
+                        <tr key={team.teamKey || team.submissionCode} className={`${rowBg} hover:bg-blue-50/60 transition`}>
+                          {/* Sr. No. */}
+                          <td className="py-2.5 px-2 text-center font-bold text-slate-600 border-r border-slate-200">
+                            {team.globalSrNo}
+                          </td>
+
+                          {/* Team Code */}
+                          <td className="py-2.5 px-2 text-center border-r border-slate-200 whitespace-nowrap">
+                            <span className="px-2.5 py-1 rounded-lg bg-[#0e3868] text-white font-mono font-black text-xs tracking-wider shadow-2xs border border-blue-900 inline-block">
+                              {team.teamCode || `TEAM ${String(team.globalSrNo).padStart(2, '0')}`}
+                            </span>
+                          </td>
+
+                          {/* Project Title */}
+                          <td className="py-2.5 px-3 border-r border-slate-200 font-extrabold text-slate-900 text-xs uppercase leading-snug">
+                            {team.projectTitle}
+                          </td>
+
+                          {/* 20 Sub-Criteria Score Cells */}
+                          {RUBRICS_FLAT_LIST.map((sp) => {
+                            const val = teamScores[sp.id];
+                            const isPresent = val !== undefined && val !== null && val !== '';
+                            return (
+                              <td
+                                key={sp.id}
+                                className="py-2 px-1 text-center border-r border-slate-200 font-bold text-xs"
+                                title={`${sp.title} (Max ${sp.maxMarks} Marks)`}
+                              >
+                                {isPresent ? (
+                                  <span className="inline-block w-6 h-6 rounded-md bg-blue-100 text-blue-900 font-black text-xs leading-6 text-center shadow-2xs">
+                                    {val}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-300 font-mono text-[11px]">&bull;</span>
+                                )}
+                              </td>
+                            );
+                          })}
+
+                          {/* Total Score */}
+                          <td className="py-2.5 px-2 text-center border-r border-slate-200 font-black text-xs bg-slate-100/70">
+                            {hasScores ? (
+                              <span className="px-2 py-0.5 rounded-md bg-blue-900 text-white font-mono font-black text-xs shadow-2xs">
+                                {totalScored}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400 font-mono text-[11px]">—/50</span>
+                            )}
+                          </td>
+
+                          {/* Action: Score */}
+                          <td className="py-2.5 px-2 text-center whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedTeamCode(team.submissionCode);
+                                setSubView('live_scoring');
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 font-bold text-[11px] transition cursor-pointer"
+                            >
+                              Score
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Collapsible Criteria Elaboration Guide */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowElaboratedGuide((prev) => !prev)}
+              className="w-full p-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 text-slate-800 transition cursor-pointer text-left"
+            >
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-blue-700" />
+                <span className="font-extrabold text-sm text-slate-900">
+                  All 20 Criteria Elaborated Reference Guide (Descriptors for Score 0, 1, 2, 3)
+                </span>
+                <span className="text-xs text-slate-500 font-medium ml-2">
+                  (Attached at end of PDF)
+                </span>
+              </div>
+              <span className="text-xs font-bold text-blue-700">
+                {showElaboratedGuide ? 'Hide Elaboration' : 'Show Full Elaboration'}
+              </span>
+            </button>
+
+            {showElaboratedGuide && (
+              <div className="p-4 border-t border-slate-200 overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-[#0e3868] text-white uppercase text-[10px] font-extrabold tracking-wider border-b border-blue-950">
+                      <th className="py-2.5 px-2 text-center w-10 border-r border-blue-900">No.</th>
+                      <th className="py-2.5 px-3 w-40 border-r border-blue-900">Evaluation Parameter</th>
+                      <th className="py-2.5 px-3 w-48 border-r border-blue-900">Sub-parameter</th>
+                      <th className="py-2.5 px-2 text-center w-16 border-r border-blue-900 bg-[#0b2d54]">Max Marks</th>
+                      <th className="py-2.5 px-3 border-r border-blue-900 bg-[#0b2d54] text-amber-200">Score 0</th>
+                      <th className="py-2.5 px-3 border-r border-blue-900 text-blue-200">Score 1</th>
+                      <th className="py-2.5 px-3 border-r border-blue-900 text-emerald-200">Score 2</th>
+                      <th className="py-2.5 px-3 text-emerald-300">Score 3</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {RUBRICS_FLAT_LIST.map((sp, idx) => (
+                      <tr key={sp.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
+                        <td className="py-2 px-2 text-center border-r border-slate-200 font-mono font-bold text-slate-700">
+                          {sp.id}
+                        </td>
+                        <td className="py-2 px-3 border-r border-slate-200 font-bold text-[#0e3868] text-[11px]">
+                          {sp.parameterShortTitle}
+                        </td>
+                        <td className="py-2 px-3 border-r border-slate-200 font-extrabold text-slate-900 text-[11px] leading-tight">
+                          {sp.title}
+                        </td>
+                        <td className="py-2 px-2 text-center border-r border-slate-200 font-black text-slate-900">
+                          <span className="inline-block w-6 h-6 rounded-full leading-6 text-center bg-blue-100 text-blue-900 text-xs font-black">
+                            {sp.maxMarks}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 border-r border-slate-200 text-[11px] text-slate-600 bg-rose-50/20 leading-snug">
+                          {sp.descriptors[0]}
+                        </td>
+                        <td className="py-2 px-3 border-r border-slate-200 text-[11px] text-slate-700 bg-amber-50/20 leading-snug">
+                          {sp.descriptors[1]}
+                        </td>
+                        <td className="py-2 px-3 border-r border-slate-200 text-[11px] text-slate-700 bg-blue-50/20 leading-snug">
+                          {sp.descriptors[2]}
+                        </td>
+                        <td className="py-2 px-3 text-[11px] leading-snug">
+                          {sp.descriptors[3] === 'Not applicable' ? (
+                            <span className="text-slate-400 italic">Not applicable (Max 2 Marks)</span>
+                          ) : (
+                            <span className="text-emerald-900 font-medium">{sp.descriptors[3]}</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ============================================================================== */}
       {/* SUB-VIEW 1: RUBRICS & DESCRIPTORS MASTER TABLE */}
