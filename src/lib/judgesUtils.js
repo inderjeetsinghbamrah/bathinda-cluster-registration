@@ -432,35 +432,47 @@ export const exportJudgesToCsv = (judgesList = [], filename = '') => {
 };
 
 /**
- * Export Jury Attendance Sheet to Excel (.xlsx) with columns for Reporting In-Time and Signature
+ * Export Jury Attendance Sheet to Excel (.xlsx) with tabs for:
+ * 1. Core Jury Board (5 members)
+ * 2. Standby / Reserve Jury Panel (2 members)
+ * 3. Complete Evaluation Jury Board (All 7 members)
  */
 export const exportJuryAttendanceToExcel = (judgesList = [], filename = '') => {
   const slotMap = new Map();
   judgesList.forEach((j) => slotMap.set(j.slotKey, j));
 
-  const excelRows = JUDGE_SLOTS.map((slot, idx) => {
-    const judge = slotMap.get(slot.slotKey);
-    return {
-      'Sr. No.': idx + 1,
-      'Jury Role / Position': slot.label.toUpperCase(),
-      'Judge Full Name': judge?.name ? judge.name.toUpperCase() : 'VACANT / UNASSIGNED',
-      'Contact Number': judge?.contact || '-',
-      'Email ID': judge?.email || '-',
-      'Designation': judge?.designation ? judge.designation.toUpperCase() : '-',
-      'Organisation': judge?.organisation ? judge.organisation.toUpperCase() : '-',
-      'Organisation Location': judge?.organisationLocation ? judge.organisationLocation.toUpperCase() : '-',
-      'Domain Specialization': judge?.domain ? judge.domain.toUpperCase() : '-',
-      'Reporting In-Time': '', // Blank for physical time entry on event day
-      'Attendance / Physical Signature': '', // Blank for physical signature
-      'Remarks': ''
-    };
-  });
+  const formatRows = (slots) =>
+    slots.map((slot, idx) => {
+      const judge = slotMap.get(slot.slotKey);
+      return {
+        'Sr. No.': idx + 1,
+        'Jury Role / Position': slot.label.toUpperCase(),
+        'Judge Full Name': judge?.name ? judge.name.toUpperCase() : 'VACANT / UNASSIGNED',
+        'Contact Number': judge?.contact || '-',
+        'Email ID': judge?.email || '-',
+        'Designation': judge?.designation ? judge.designation.toUpperCase() : '-',
+        'Organisation': judge?.organisation ? judge.organisation.toUpperCase() : '-',
+        'Organisation Location': judge?.organisationLocation ? judge.organisationLocation.toUpperCase() : '-',
+        'Domain Specialization': judge?.domain ? judge.domain.toUpperCase() : '-',
+        'Reporting In-Time': '', // Blank for physical time entry on event day
+        'Attendance / Physical Signature': '', // Blank for physical signature
+        'Remarks': ''
+      };
+    });
 
-  const worksheet = XLSX.utils.json_to_sheet(excelRows);
+  const coreSlots = JUDGE_SLOTS.filter((s) => s.role !== 'RESERVE_JURY_MEMBER');
+  const reserveSlots = JUDGE_SLOTS.filter((s) => s.role === 'RESERVE_JURY_MEMBER');
+
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Jury Attendance Sheet');
 
-  worksheet['!cols'] = [
+  // Sheet 1: Core Jury Board (5)
+  const wsCore = XLSX.utils.json_to_sheet(formatRows(coreSlots));
+  // Sheet 2: Reserve Jury Panel (2)
+  const wsReserve = XLSX.utils.json_to_sheet(formatRows(reserveSlots));
+  // Sheet 3: Complete Jury (All 7)
+  const wsAll = XLSX.utils.json_to_sheet(formatRows(JUDGE_SLOTS));
+
+  const cols = [
     { wch: 8 },  // Sr. No.
     { wch: 28 }, // Role
     { wch: 30 }, // Name
@@ -475,6 +487,14 @@ export const exportJuryAttendanceToExcel = (judgesList = [], filename = '') => {
     { wch: 22 }  // Remarks
   ];
 
+  wsCore['!cols'] = cols;
+  wsReserve['!cols'] = cols;
+  wsAll['!cols'] = cols;
+
+  XLSX.utils.book_append_sheet(workbook, wsCore, 'Core Jury Board (5)');
+  XLSX.utils.book_append_sheet(workbook, wsReserve, 'Reserve Jury Panel (2)');
+  XLSX.utils.book_append_sheet(workbook, wsAll, 'All Jury Combined (7)');
+
   const fname =
     filename ||
     `Jury_Attendance_Sheet_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.xlsx`;
@@ -482,20 +502,17 @@ export const exportJuryAttendanceToExcel = (judgesList = [], filename = '') => {
 };
 
 /**
- * Download official Jury Attendance Sheet as crisp pure Vector PDF using jsPDF + jspdf-autotable.
- * Guarantees true vector sharpness, embedded logos, exact landscape A4 layout, and large signature boxes.
+ * Internal helper to render a single crisp Landscape A4 Jury Attendance Sheet page into jsPDF doc
  */
-export const generateVectorJuryAttendancePdf = (
+const renderJuryPdfPage = (
+  doc,
+  slotsToRender = [],
   judgesList = [],
-  filename = ''
+  bannerTitle = 'Cluster-Level Competition – Jury Evaluation Board Attendance Sheet',
+  subfooterTag = 'Official Evaluation Jury Board Attendance Record',
+  pageNumber = 1,
+  totalPages = 1
 ) => {
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: 'a4',
-    compress: true
-  });
-
   const pageWidth = 297;
   const pageHeight = 210;
   const margin = 8;
@@ -531,10 +548,11 @@ export const generateVectorJuryAttendancePdf = (
 
   // Center Pill Banner
   doc.setFillColor(14, 56, 104);
-  doc.roundedRect(pageWidth / 2 - 62, margin + 9.5, 124, 5.5, 2.75, 2.75, 'F');
-  doc.setFontSize(8.5);
+  const bannerWidth = Math.min(145, Math.max(120, bannerTitle.length * 1.9));
+  doc.roundedRect(pageWidth / 2 - bannerWidth / 2, margin + 9.5, bannerWidth, 5.5, 2.75, 2.75, 'F');
+  doc.setFontSize(8.2);
   doc.setTextColor(255, 255, 255);
-  doc.text('Cluster-Level Competition – Jury Evaluation Board Attendance Sheet', pageWidth / 2, margin + 13.5, { align: 'center' });
+  doc.text(bannerTitle, pageWidth / 2, margin + 13.5, { align: 'center' });
 
   // Center Meta Bar
   doc.setFillColor(241, 245, 249);
@@ -564,7 +582,11 @@ export const generateVectorJuryAttendancePdf = (
   const slotMap = new Map();
   judgesList.forEach((j) => slotMap.set(j.slotKey, j));
 
-  const tableBody = JUDGE_SLOTS.map((slot, idx) => {
+  const isFewRows = slotsToRender.length <= 2;
+  const isMediumRows = slotsToRender.length <= 5;
+  const minRowHeight = isFewRows ? 24 : isMediumRows ? 17 : 14;
+
+  const tableBody = slotsToRender.map((slot, idx) => {
     const judge = slotMap.get(slot.slotKey);
     const isChair = slot.role === 'CHAIRPERSON';
     const isReserve = slot.role === 'RESERVE_JURY_MEMBER';
@@ -581,9 +603,9 @@ export const generateVectorJuryAttendancePdf = (
       { content: nameText, styles: { halign: 'left', valign: 'middle', fillColor: rowBg } },
       { content: orgText, styles: { halign: 'left', valign: 'middle', fillColor: rowBg } },
       { content: domainText, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: rowBg } },
-      { content: '', styles: { minCellHeight: 14, fillColor: [255, 255, 255] } }, // Reporting In-Time
-      { content: '', styles: { minCellHeight: 14, fillColor: [255, 255, 255] } }, // Physical Signature (Blank)
-      { content: '', styles: { minCellHeight: 14, fillColor: [255, 255, 255] } }  // Remarks
+      { content: '', styles: { minCellHeight: minRowHeight, fillColor: [255, 255, 255] } }, // Reporting In-Time
+      { content: '', styles: { minCellHeight: minRowHeight, fillColor: [255, 255, 255] } }, // Physical Signature (Blank)
+      { content: '', styles: { minCellHeight: minRowHeight, fillColor: [255, 255, 255] } }  // Remarks
     ];
   });
 
@@ -670,8 +692,97 @@ export const generateVectorJuryAttendancePdf = (
   doc.setFontSize(6.5);
   doc.setTextColor(120, 120, 120);
   doc.text(`Punjab Polytechnic Innovation Challenge- 2026-27 • ${EVENT_DETAILS.cluster} • Host: ${EVENT_DETAILS.hostInstitute}`, margin + 5, pageHeight - margin - 3);
-  doc.text('Official Evaluation Jury Board Attendance Record', pageWidth - margin - 5, pageHeight - margin - 3, { align: 'right' });
 
-  const fname = filename || `Jury_Attendance_Sheet_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
+  const pageLabel = totalPages > 1 ? ` • Page ${pageNumber} of ${totalPages}` : '';
+  doc.text(`${subfooterTag}${pageLabel}`, pageWidth - margin - 5, pageHeight - margin - 3, { align: 'right' });
+};
+
+/**
+ * Download official Jury Attendance Sheet as crisp pure Vector PDF using jsPDF + jspdf-autotable.
+ * Supports:
+ * - 'split': Separate sheets (Page 1: Core Jury Board [5 slots], Page 2: Standby / Reserve Jury Panel [2 slots])
+ * - 'combined': All 7 positions on 1 sheet
+ * - 'core': Core Evaluation Jury Board only (1 page)
+ * - 'reserve': Standby / Reserve Jury Panel only (1 page)
+ */
+export const generateVectorJuryAttendancePdf = (
+  judgesList = [],
+  mode = 'split',
+  filename = ''
+) => {
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4',
+    compress: true
+  });
+
+  const coreSlots = JUDGE_SLOTS.filter((s) => s.role !== 'RESERVE_JURY_MEMBER');
+  const reserveSlots = JUDGE_SLOTS.filter((s) => s.role === 'RESERVE_JURY_MEMBER');
+
+  let defaultFilename = `Jury_Attendance_Sheet_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
+
+  if (mode === 'split') {
+    // Page 1: Core Evaluation Jury Board (1 Chairperson + 4 Jury Members)
+    renderJuryPdfPage(
+      doc,
+      coreSlots,
+      judgesList,
+      'Cluster-Level Competition – Core Evaluation Jury Board Attendance Sheet',
+      'Official Core Jury Board Attendance Record',
+      1,
+      2
+    );
+
+    // Page 2: Standby / Reserve Jury Panel (2 Reserve Members)
+    doc.addPage('a4', 'landscape');
+    renderJuryPdfPage(
+      doc,
+      reserveSlots,
+      judgesList,
+      'Cluster-Level Competition – Standby / Reserve Jury Panel Attendance Sheet',
+      'Official Standby / Reserve Jury Attendance Record',
+      2,
+      2
+    );
+
+    defaultFilename = `Jury_Attendance_Sheet_Core_and_Reserve_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
+  } else if (mode === 'core') {
+    renderJuryPdfPage(
+      doc,
+      coreSlots,
+      judgesList,
+      'Cluster-Level Competition – Core Evaluation Jury Board Attendance Sheet',
+      'Official Core Jury Board Attendance Record',
+      1,
+      1
+    );
+    defaultFilename = `Jury_Attendance_Sheet_Core_Board_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
+  } else if (mode === 'reserve') {
+    renderJuryPdfPage(
+      doc,
+      reserveSlots,
+      judgesList,
+      'Cluster-Level Competition – Standby / Reserve Jury Panel Attendance Sheet',
+      'Official Standby / Reserve Jury Attendance Record',
+      1,
+      1
+    );
+    defaultFilename = `Jury_Attendance_Sheet_Reserve_Panel_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
+  } else {
+    // Combined: All 7 positions on 1 page
+    renderJuryPdfPage(
+      doc,
+      JUDGE_SLOTS,
+      judgesList,
+      'Cluster-Level Competition – Jury Evaluation Board Attendance Sheet (Combined)',
+      'Official Evaluation Jury Board Attendance Record (Combined)',
+      1,
+      1
+    );
+    defaultFilename = `Jury_Attendance_Sheet_Combined_All7_Bathinda_Cluster_${EVENT_DETAILS.eventDate}.pdf`;
+  }
+
+  const fname = filename || defaultFilename;
   doc.save(fname);
 };

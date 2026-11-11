@@ -164,6 +164,11 @@
     break-after: avoid !important;
   }
 
+  .jury-attendance-sheet.page-break {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
   .attendance-page-sheet:last-of-type,
   .attendance-page-sheet:last-child {
     page-break-after: avoid !important;
