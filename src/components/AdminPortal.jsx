@@ -646,169 +646,172 @@ export const AdminPortal = () => {
           </div>
         </div>
 
-        {/* Overview Stats Cards - Only visible in institutes/roster views */}
+        {/* Overview Stats Cards - Responsive 2x2 on mobile, 4-in-a-row on desktop */}
         {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 no-print">
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
-                <Building2 className="w-6 h-6" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5 no-print">
+            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Registered Institutes</span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-800">{totalInstitutes}</span>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0">
-                <FolderKanban className="w-6 h-6" />
-              </div>
-              <div>
-                <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Project Teams</span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-800">{totalTeams}</span>
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-xs text-slate-500 font-semibold block uppercase tracking-wider truncate">Institutes</span>
+                <span className="text-xl sm:text-3xl font-black text-slate-800">{totalInstitutes}</span>
               </div>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
-                <Users className="w-6 h-6" />
+            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0">
+                <FolderKanban className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Enrolled Students</span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-800">{totalStudents}</span>
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-xs text-slate-500 font-semibold block uppercase tracking-wider truncate">Project Teams</span>
+                <span className="text-xl sm:text-3xl font-black text-slate-800">{totalTeams}</span>
+              </div>
+            </div>
+
+            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-xs text-slate-500 font-semibold block uppercase tracking-wider truncate">Students</span>
+                <span className="text-xl sm:text-3xl font-black text-slate-800">{totalStudents}</span>
               </div>
             </div>
 
             <div
               onClick={() => setViewMode('judges')}
-              className="bg-white p-4 sm:p-5 rounded-2xl border border-amber-200 hover:border-amber-400 shadow-2xs flex items-center justify-between gap-3 cursor-pointer transition hover:bg-amber-50/40"
+              className="bg-white p-3.5 sm:p-5 rounded-2xl border border-amber-200 hover:border-amber-400 shadow-2xs flex items-center justify-between gap-2 sm:gap-4 cursor-pointer transition hover:bg-amber-50/40 group"
               title="Click to configure Evaluation Jury Panel & Judges"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0">
-                  <Award className="w-6 h-6 text-amber-600" />
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
+                  <Award className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
                 </div>
-                <div>
-                  <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">Jury Panel</span>
-                  <span className="text-xl sm:text-2xl font-black text-slate-800">7 Slots</span>
+                <div className="min-w-0">
+                  <span className="text-[10px] sm:text-xs text-slate-500 font-semibold block uppercase tracking-wider truncate">Jury Board</span>
+                  <span className="text-xl sm:text-3xl font-black text-slate-800">7 Slots</span>
                 </div>
               </div>
-              <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-1 rounded-xl">
+              <span className="text-[10px] sm:text-xs font-bold text-amber-800 bg-amber-100 group-hover:bg-amber-200 px-2.5 py-1 rounded-xl hidden sm:inline flex-shrink-0 transition">
                 Open &rarr;
               </span>
             </div>
           </div>
         )}
 
-        {/* Toolbar: Search, View Switcher & Action Buttons - Only visible in institutes/roster views */}
+        {/* 1. PRIMARY VIEW NAVIGATION TABS (Institutes & Roster Mode) */}
         {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && (
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs mb-5 flex flex-wrap items-center justify-between gap-3 no-print">
-            <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
-              {/* Search box */}
-              <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search by institute, code, mentor, student..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-
-              {/* View Mode Switcher */}
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setViewMode('institutes')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                    viewMode === 'institutes' ? 'bg-white text-blue-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  By Institutes ({submissions.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('reorder')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                    viewMode === 'reorder'
-                      ? 'bg-indigo-900 text-white shadow-2xs'
-                      : 'text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50/60'
-                  }`}
-                >
-                  <ArrowUpDown className="w-3.5 h-3.5" />
-                  <span>Reorder Projects Table ({totalTeams})</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('roster')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                    viewMode === 'roster' ? 'bg-white text-blue-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Joined Roster ({joinedRecords.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('attendance')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                    viewMode === 'attendance'
-                      ? 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-xs'
-                      : 'text-blue-700 hover:text-blue-900 hover:bg-blue-50/60'
-                  }`}
-                >
-                  <ClipboardCheck className="w-3.5 h-3.5" />
-                  <span>Attendance Sheet (PDF)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('judges')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                    viewMode === 'judges'
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-amber-950 shadow-xs'
-                      : 'text-amber-800 hover:text-amber-950 hover:bg-amber-100/60'
-                  }`}
-                >
-                  <Award className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Jury Panel (7)</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Action buttons & Export */}
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Jury Panel Button */}
+          <div className="bg-white rounded-2xl p-1.5 sm:p-2 border border-slate-200 shadow-2xs mb-4 no-print">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
+              {/* Tab 1: By Institutes */}
               <button
                 type="button"
-                onClick={() => setViewMode('judges')}
-                className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 active:scale-95 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
-                title="Manage Evaluation Jury Board & Add Judges"
+                onClick={() => setViewMode('institutes')}
+                className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-2 flex-shrink-0 ${
+                  viewMode === 'institutes'
+                    ? 'bg-blue-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
               >
-                <Award className="w-4 h-4 text-amber-600" />
-                <span>Jury Panel (7)</span>
+                <Building2 className="w-4 h-4" />
+                <span>By Institutes</span>
+                <span
+                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-bold ${
+                    viewMode === 'institutes' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {submissions.length}
+                </span>
               </button>
 
-              {/* Reorder Table Shortcut Button */}
+              {/* Tab 2: Master Joined Roster */}
+              <button
+                type="button"
+                onClick={() => setViewMode('roster')}
+                className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-2 flex-shrink-0 ${
+                  viewMode === 'roster'
+                    ? 'bg-blue-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>Joined Roster</span>
+                <span
+                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-bold ${
+                    viewMode === 'roster' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {joinedRecords.length}
+                </span>
+              </button>
+
+              {/* Tab 3: Reorder Sequence (Workspace) */}
               <button
                 type="button"
                 onClick={() => setViewMode('reorder')}
-                className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 active:scale-95 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
-                title="Open Reorderable Projects Table"
+                className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-2 flex-shrink-0 text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50"
               >
                 <ArrowUpDown className="w-4 h-4 text-indigo-600" />
-                <span>Reorder Table</span>
+                <span>Reorder Sequence</span>
+                <span className="text-[11px] px-1.5 py-0.2 rounded-full font-bold bg-indigo-100 text-indigo-800">
+                  {totalTeams}
+                </span>
               </button>
 
-              {/* Direct Attendance Sheet PDF Button */}
+              {/* Tab 4: Attendance Sheet (PDF) */}
               <button
                 type="button"
                 onClick={() => setViewMode('attendance')}
-                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 active:scale-95 text-white text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+                className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-2 flex-shrink-0 text-blue-700 hover:text-blue-900 hover:bg-blue-50"
               >
-                <FileText className="w-4 h-4 text-amber-300" />
-                <span>Attendance Sheet (PDF)</span>
+                <FileText className="w-4 h-4 text-blue-600" />
+                <span>Attendance Sheet</span>
               </button>
 
+              {/* Tab 5: Jury Panel */}
+              <button
+                type="button"
+                onClick={() => setViewMode('judges')}
+                className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-2 flex-shrink-0 text-amber-800 hover:text-amber-950 hover:bg-amber-50"
+              >
+                <Award className="w-4 h-4 text-amber-600" />
+                <span>Jury Panel</span>
+                <span className="text-[11px] px-1.5 py-0.2 rounded-full font-bold bg-amber-100 text-amber-900">
+                  7 Slots
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 2. ACTION TOOLBAR: SEARCH + EXPORTS (No duplicate buttons) */}
+        {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && (
+          <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs mb-5 flex flex-col md:flex-row md:items-center justify-between gap-3 no-print">
+            {/* Search box - full width on mobile, max 400px on desktop */}
+            <div className="relative flex-1 w-full md:max-w-md">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by institute, code, mentor, student..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Right side Actions: Refresh, Bulk Delete (if items selected), Excel, CSV, Print */}
+            <div className="flex flex-wrap items-center gap-2">
               {/* Bulk Delete Button if items selected */}
               {selectedSubmissionIds.size > 0 && (
                 <button
@@ -821,11 +824,13 @@ export const AdminPortal = () => {
                 </button>
               )}
 
+              {/* Refresh Registry */}
               <button
+                type="button"
                 onClick={() => fetchSubmissions()}
                 disabled={isLoadingSubmissions}
-                className="px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
-                title="Refresh Registry"
+                className="px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                title="Refresh Registry from Database"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoadingSubmissions ? 'animate-spin' : ''}`} />
                 <span className="hidden sm:inline">Refresh</span>
@@ -833,32 +838,38 @@ export const AdminPortal = () => {
 
               {/* Export to Excel (.xlsx) */}
               <button
+                type="button"
                 onClick={exportToExcel}
                 disabled={joinedRecords.length === 0}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs transition disabled:opacity-50 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs transition disabled:opacity-50 cursor-pointer"
+                title="Export Master Roster to Excel"
               >
-                <FileSpreadsheet className="w-4 h-4" />
+                <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
                 <span>Export Excel</span>
               </button>
 
               {/* Export to CSV */}
               <button
+                type="button"
                 onClick={exportToCsv}
                 disabled={joinedRecords.length === 0}
-                className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition disabled:opacity-50 cursor-pointer"
+                className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 active:scale-95 text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-xs transition disabled:opacity-50 cursor-pointer"
+                title="Download as CSV"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-3.5 h-3.5 text-slate-400" />
                 <span>CSV</span>
               </button>
 
               {/* Print / Save to PDF */}
               <button
+                type="button"
                 onClick={() => window.print()}
                 disabled={joinedRecords.length === 0}
-                className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs transition disabled:opacity-50 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
+                title="Print Master Roster"
               >
-                <Printer className="w-4 h-4" />
-                <span>Print</span>
+                <Printer className="w-3.5 h-3.5 text-slate-600" />
+                <span className="hidden sm:inline">Print</span>
               </button>
             </div>
           </div>

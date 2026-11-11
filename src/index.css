@@ -49,6 +49,15 @@
   background-color: #94a3b8;
 }
 
+/* Hide scrollbar for clean touch-scrollable tabs on mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Print Styles for Official Receipt Slip & Attendance Sheet */
 @media print {
   @page {
