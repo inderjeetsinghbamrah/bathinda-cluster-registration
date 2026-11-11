@@ -487,7 +487,7 @@ export const generateVectorAttendancePdf = (
             { content: String(team.instituteName || '').toUpperCase(), rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
             { content: `${String(team.mentorName || '').toUpperCase()}${team.mentorContact ? `\n(${team.mentorContact})` : ''}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
             { content: '', rowSpan: studentCount, styles: { minCellHeight: rowMinHeight, fillColor: [255, 255, 255] } },
-            { content: `[${teamCodeText}]\n${String(team.projectTitle || '').toUpperCase()}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
+            { content: String(team.projectTitle || '').toUpperCase(), rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
             { content: `[${team.theme.code}]\n${String(team.theme.name || '').toUpperCase()}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } }
           );
         }

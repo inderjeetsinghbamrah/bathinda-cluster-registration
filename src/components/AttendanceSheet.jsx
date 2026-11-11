@@ -614,14 +614,6 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                                     rowSpan={studentCount}
                                     className="p-1.5 text-center border border-[#cbd5e1] align-middle text-[10px]"
                                   >
-                                    <div className="flex items-center justify-center gap-1.5 mb-1">
-                                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-200 font-mono font-extrabold text-[9px]">
-                                        {team.teamCode || `TEAM ${String(team.globalSrNo).padStart(2, '0')}`}
-                                      </span>
-                                      <span className="text-[8.5px] font-mono text-slate-500 font-semibold">
-                                        ({team.submissionCode})
-                                      </span>
-                                    </div>
                                     <div className="font-bold text-slate-900 leading-snug uppercase">
                                       {team.projectTitle}
                                     </div>
