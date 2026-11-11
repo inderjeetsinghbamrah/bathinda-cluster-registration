@@ -30,6 +30,7 @@ import {
   generateVectorTeamScoreSheetPdf,
   generateBatchAllTeamsScoreSheetsPdf,
   generateConsolidatedJuryMatrixPdf,
+  generateAllThreeMasterSheetsPdf,
   exportRubricsToExcel
 } from '../lib/rubricsData';
 import { EVENT_DETAILS } from '../lib/attendanceUtils';
@@ -46,6 +47,7 @@ export const JuryRubricsSection = ({
   onPrint = null
 }) => {
   const [subView, setSubView] = useState('master_matrix'); // 'master_matrix' | 'descriptors' | 'sheet_preview' | 'live_scoring'
+  const [sheetVariant, setSheetVariant] = useState('all_seven'); // 'all_seven' | 'core_only' | 'individual'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParamFilter, setSelectedParamFilter] = useState('All');
   const [selectedTeamCode, setSelectedTeamCode] = useState(() => {
@@ -215,13 +217,25 @@ export const JuryRubricsSection = ({
     }
   };
 
-  const handleDownloadMasterMatrix = async () => {
+  const handleDownloadMasterMatrix = async (variant = sheetVariant) => {
     setIsExportingPdf(true);
     try {
       await new Promise((r) => setTimeout(r, 60));
-      generateConsolidatedJuryMatrixPdf(formattedTeams);
+      generateConsolidatedJuryMatrixPdf(formattedTeams, variant);
     } catch (err) {
       alert('Error generating Master Matrix: ' + err.message);
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const handleDownloadAllThreeSheets = async () => {
+    setIsExportingPdf(true);
+    try {
+      await new Promise((r) => setTimeout(r, 80));
+      generateAllThreeMasterSheetsPdf(formattedTeams);
+    } catch (err) {
+      alert('Error generating All 3 Master Sheets: ' + err.message);
     } finally {
       setIsExportingPdf(false);
     }
@@ -266,16 +280,28 @@ export const JuryRubricsSection = ({
               <span>Blank Sheet (PDF)</span>
             </button>
 
-            {/* Master Scoring Matrix Single PDF */}
+            {/* Master Scoring Matrix PDF */}
             <button
               type="button"
-              onClick={handleDownloadMasterMatrix}
+              onClick={() => handleDownloadMasterMatrix(sheetVariant)}
               disabled={isExportingPdf || formattedTeams.length === 0}
               className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 active:scale-95 text-white text-xs font-extrabold flex items-center gap-2 shadow-sm transition cursor-pointer disabled:opacity-50"
-              title="Download Master Score Sheet: 1 unified table for all 17 projects with 20 sub-criteria columns + full criteria elaborated at end"
+              title="Download Master Score Sheet (Active Variant with 20 criteria + full criteria elaborated at end)"
             >
               <Trophy className="w-4 h-4 text-amber-300" />
-              <span>Master Score Sheet (Single PDF)</span>
+              <span>Master Score Sheet (PDF)</span>
+            </button>
+
+            {/* All 3 Master Sheets in 1 Combined PDF */}
+            <button
+              type="button"
+              onClick={handleDownloadAllThreeSheets}
+              disabled={isExportingPdf || formattedTeams.length === 0}
+              className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-purple-900 to-indigo-950 hover:from-purple-950 hover:to-slate-900 active:scale-95 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition cursor-pointer disabled:opacity-50"
+              title="Download all 3 Master Sheets in 1 Package: Sheet 1 (All 7 Jury), Sheet 2 (Core 5), Sheet 3 (Individual Evaluator) + Rubric Guide"
+            >
+              <Download className="w-3.5 h-3.5 text-purple-300" />
+              <span>All 3 Sheets (5-Page PDF)</span>
             </button>
 
             {/* All Teams Booklet PDF */}
@@ -411,40 +437,119 @@ export const JuryRubricsSection = ({
       {subView === 'master_matrix' && (
         <div className="w-full max-w-[1240px] space-y-4">
           {/* Header Action Bar */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-2xs">
-                <Trophy className="w-5 h-5 text-white" />
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-3 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-2xs">
+                  <Trophy className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                    <span>Master Jury Scoring Matrix &bull; All 17 Projects in Single Table</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-900 px-2 py-0.5 rounded-full border border-blue-200">
+                      20 Sub-Criteria
+                    </span>
+                  </h3>
+                  <p className="text-slate-500 text-[11px] font-medium">
+                    All 20 Sub-Criteria numbered 1.1 through 4.5 in a single unified grid &bull; Max 50 Marks &bull; 3 Official Sheet Variants
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-black text-slate-900 text-sm">
-                  Master Jury Scoring Matrix &bull; All 17 Projects in Single Table
-                </h3>
-                <p className="text-slate-500 text-[11px] font-medium">
-                  All 20 Sub-Criteria numbered 1.1 through 4.5 in a single unified grid &bull; Max 50 Marks
-                </p>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleDownloadMasterMatrix(sheetVariant)}
+                  disabled={isExportingPdf || formattedTeams.length === 0}
+                  className="px-3.5 py-2 rounded-xl bg-[#0e3868] hover:bg-blue-950 active:scale-95 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
+                  title="Download Active Sheet Variant (PDF with 20 criteria + full criteria elaborated at end)"
+                >
+                  <Download className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Download {sheetVariant === 'all_seven' ? 'Sheet 1 (7 Jury)' : sheetVariant === 'core_only' ? 'Sheet 2 (Core 5)' : 'Sheet 3 (Individual)'} (PDF)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadAllThreeSheets}
+                  disabled={isExportingPdf || formattedTeams.length === 0}
+                  className="px-3 py-2 rounded-xl bg-purple-900 hover:bg-purple-950 active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
+                  title="Download all 3 Master Sheets in 1 Combined 5-Page PDF"
+                >
+                  <Download className="w-3.5 h-3.5 text-purple-300" />
+                  <span>All 3 Sheets (5-Page PDF)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => exportRubricsToExcel(formattedTeams)}
+                  className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
+                  title="Export all sheet variants to Excel (.xlsx)"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
+                  <span>Excel (4 Tabs)</span>
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleDownloadMasterMatrix}
-                disabled={isExportingPdf || formattedTeams.length === 0}
-                className="px-3.5 py-2 rounded-xl bg-[#0e3868] hover:bg-blue-950 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5 text-amber-300" />
-                <span>Download Master Score Sheet (PDF)</span>
-              </button>
+            {/* Sheet Variant Selector Tabs */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
+              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 px-2">
+                  Select Layout / Sheet Variant:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSheetVariant('all_seven')}
+                  className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                    sheetVariant === 'all_seven'
+                      ? 'bg-blue-900 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>1. All 7 Jury Members</span>
+                  <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${sheetVariant === 'all_seven' ? 'bg-blue-800 text-blue-200' : 'bg-slate-200 text-slate-600'}`}>
+                    Full Board
+                  </span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => exportRubricsToExcel(formattedTeams)}
-                className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
-                <span>Excel</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setSheetVariant('core_only')}
+                  className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                    sheetVariant === 'core_only'
+                      ? 'bg-blue-900 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>2. Core Board Only</span>
+                  <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${sheetVariant === 'core_only' ? 'bg-blue-800 text-blue-200' : 'bg-slate-200 text-slate-600'}`}>
+                    5 Members
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSheetVariant('individual')}
+                  className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                    sheetVariant === 'individual'
+                      ? 'bg-blue-900 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>3. Individual Evaluator Score Sheet</span>
+                  <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${sheetVariant === 'individual' ? 'bg-blue-800 text-blue-200' : 'bg-slate-200 text-slate-600'}`}>
+                    Evaluator Sign
+                  </span>
+                </button>
+              </div>
+
+              <span className="text-[11px] text-slate-500 font-medium">
+                {sheetVariant === 'all_seven'
+                  ? 'Showing consensus sheet with all 7 signature blocks (Chairperson + 4 Core + 2 Reserve)'
+                  : sheetVariant === 'core_only'
+                  ? 'Showing official decision matrix with 5 Core Jury Member signature blocks'
+                  : 'Showing individual scoring matrix with judge name, remarks, and signature certification'}
+              </span>
             </div>
           </div>
 
@@ -610,6 +715,128 @@ export const JuryRubricsSection = ({
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Endorsement & Signatures Section according to active sheetVariant */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-2.5 gap-2">
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-blue-900" />
+                <h4 className="text-xs font-black uppercase tracking-wider text-blue-950">
+                  {sheetVariant === 'all_seven'
+                    ? 'Official Jury Board Endorsement & Final Ranking Validation (All 7 Members)'
+                    : sheetVariant === 'core_only'
+                    ? 'Core Evaluation Jury Board Endorsement & Cluster Ranking Validation (5 Core Members)'
+                    : 'Individual Evaluator Scoring Declaration & Signature'}
+                </h4>
+              </div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                {sheetVariant === 'all_seven'
+                  ? '1 Chairperson + 4 Core Members + 2 Reserve Members'
+                  : sheetVariant === 'core_only'
+                  ? '1 Chairperson + 4 Core Members'
+                  : 'Individual Evaluation Record'}
+              </span>
+            </div>
+
+            {/* Signature Blocks according to variant */}
+            {sheetVariant === 'all_seven' && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 pt-1">
+                {[
+                  { role: 'Chairperson, Jury Board', tag: 'Academic & Admin Head' },
+                  { role: 'Jury Member 1', tag: 'Academic / Technical' },
+                  { role: 'Jury Member 2', tag: 'Tech Industry Leader' },
+                  { role: 'Jury Member 3', tag: 'Industry & Innovation' },
+                  { role: 'Jury Member 4', tag: 'Prototype & Feasibility' },
+                  { role: 'Reserve Member 1', tag: 'Standby Expert' },
+                  { role: 'Reserve Member 2', tag: 'Standby Expert' }
+                ].map((sig, sIdx) => (
+                  <div
+                    key={sIdx}
+                    className="p-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 text-center flex flex-col justify-end min-h-[72px]"
+                  >
+                    <div className="border-b border-dashed border-slate-400 mb-2 mt-4" />
+                    <div className="font-extrabold text-[11px] text-slate-800 leading-tight">
+                      {sig.role}
+                    </div>
+                    <div className="text-[9.5px] text-slate-500 font-medium">{sig.tag}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {sheetVariant === 'core_only' && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 pt-1">
+                {[
+                  { role: 'Chairperson, Jury Board', tag: 'Academic & Admin Head' },
+                  { role: 'Jury Member 1 (Academic)', tag: 'Technical Evaluation' },
+                  { role: 'Jury Member 2 (Tech Leader)', tag: 'Industry Innovation' },
+                  { role: 'Jury Member 3 (Industry)', tag: 'Adoption & Sustainability' },
+                  { role: 'Jury Member 4 (Prototype)', tag: 'Design Feasibility' }
+                ].map((sig, sIdx) => (
+                  <div
+                    key={sIdx}
+                    className="p-3.5 rounded-xl border border-dashed border-blue-200 bg-blue-50/40 text-center flex flex-col justify-end min-h-[76px]"
+                  >
+                    <div className="border-b border-dashed border-blue-400 mb-2 mt-5" />
+                    <div className="font-extrabold text-xs text-blue-950 leading-tight">
+                      {sig.role}
+                    </div>
+                    <div className="text-[10px] text-blue-700 font-medium">{sig.tag}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {sheetVariant === 'individual' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs space-y-2">
+                  <div className="font-extrabold text-slate-900 text-xs">
+                    Evaluator's Overall Observations / Key Remarks:
+                  </div>
+                  <div className="border-b border-dashed border-slate-300 h-5" />
+                  <div className="border-b border-dashed border-slate-300 h-5" />
+                  <div className="border-b border-dashed border-slate-300 h-5" />
+                </div>
+                <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 text-xs space-y-2.5">
+                  <div className="font-extrabold text-blue-950 text-xs">
+                    Evaluator Certification &amp; Signature:
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-700 pt-1">
+                    <span className="font-bold">Evaluator Full Name:</span>
+                    <span className="border-b border-slate-400 w-48 text-right font-mono text-slate-500">________________________</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-700">
+                    <span className="font-bold">Jury Role / Position:</span>
+                    <span className="border-b border-slate-400 w-48 text-right font-mono text-slate-500">________________________</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-700 pt-1">
+                    <span className="font-bold">Physical Signature &amp; Date:</span>
+                    <span className="border-b border-slate-400 w-48 text-right font-mono text-slate-500">________________________</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PROMINENT OFFICIAL REFERENCE NOTE BOX */}
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-2.5">
+                <span className="px-2.5 py-1 rounded-md bg-amber-400 text-blue-950 font-black text-[10px] tracking-wider uppercase shadow-2xs">
+                  Rubric Reference Note
+                </span>
+                <span className="text-xs font-bold text-slate-100">
+                  Complete elaborated criteria descriptors and scoring levels (Scores 0, 1, 2, 3) for all 20 Sub-Parameters (1.1 through 4.5) are provided on Pages 2 &amp; 3 of the exported PDF (and directly in the guide below).
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowElaboratedGuide((prev) => !prev)}
+                className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 border border-white/20"
+              >
+                <Layers className="w-3.5 h-3.5 text-amber-300" />
+                <span>{showElaboratedGuide ? 'Hide Guide Below' : 'View Full Guide Below'}</span>
+              </button>
             </div>
           </div>
 

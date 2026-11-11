@@ -824,33 +824,66 @@ export const generateBatchAllTeamsScoreSheetsPdf = (teamsList = [], filename = n
 };
 
 /**
- * Generates Master Scoring Matrix PDF:
- * Page 1: Single master table with all 17 projects, each with 20 numbered sub-criteria columns (1.1 to 4.5),
- *         Total / 50, Rank, and official Jury Signatures.
- * Pages 2 & 3: Elaborated Rubric Guide explaining all 20 criteria in full detail.
+ * Internal helper to render the Master Scoring Table page (Page 1) into a jsPDF doc.
+ * Supports 3 Sheet Variants:
+ * 1. 'all_seven': Full Jury Board (7 Signatures: Chairperson + 4 Core + 2 Reserve)
+ * 2. 'core_only': Core Jury Board Only (5 Signatures: Chairperson + 4 Core)
+ * 3. 'individual': Individual Evaluator Scoring Sheet (Evaluator Name & Signature block)
+ *
+ * NOTE: The old last column ('Jury Sign') is removed, leaving 25 clean columns ending with Rank.
+ * NOTE: Prominent high-contrast reference note box rendered inside printable page frame.
  */
-export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = null) => {
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: 'a4',
-    compress: true
-  });
-
+const renderMasterMatrixPage = (
+  doc,
+  teamsList = [],
+  mode = 'all_seven',
+  pageNumber = 1,
+  totalPages = 3
+) => {
   const pageWidth = 297;
   const pageHeight = 210;
+  const margin = 7;
 
-  // ==========================================
-  // PAGE 1: MASTER EVALUATION TABLE (ALL TEAMS)
-  // ==========================================
-  const startY = renderPdfHeader(
-    doc,
-    'Official Master Jury Evaluation & Scoring Matrix (All Projects)',
-    'Cluster-Level Competition – 20 Sub-Criteria Comprehensive Scoring (Max 50 Marks)',
-    true
-  );
+  // Set appropriate header banner title according to mode
+  let bannerTitle = 'Official Master Jury Evaluation & Scoring Matrix (Full Jury Board • 7 Members)';
+  let subtitle = 'Cluster-Level Competition – 20 Sub-Criteria Comprehensive Scoring (Max 50 Marks)';
 
-  // Table Body Rows (All Teams with 20 sub-criteria blank score cells)
+  if (mode === 'core_only') {
+    bannerTitle = 'Official Master Jury Evaluation & Scoring Matrix (Core Jury Board • 5 Members)';
+    subtitle = 'Cluster-Level Competition – Official Core Board Evaluation Matrix (Max 50 Marks)';
+  } else if (mode === 'individual') {
+    bannerTitle = 'Official Individual Jury Evaluator Scoring Matrix (Max 50 Marks)';
+    subtitle = 'Cluster-Level Competition – Confidential Individual Evaluator Sheet (All 17 Projects)';
+  }
+
+  const startY = renderPdfHeader(doc, bannerTitle, subtitle, true);
+
+  // If individual evaluator mode, render evaluator details pill bar
+  let tableStartY = startY;
+  if (mode === 'individual') {
+    const evalBarY = startY - 0.5;
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(14, 56, 104);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(margin, evalBarY, pageWidth - margin * 2, 5.0, 1.5, 1.5, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.8);
+    doc.setTextColor(14, 56, 104);
+    doc.text('EVALUATOR DETAILS:', margin + 3, evalBarY + 3.5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.6);
+    doc.setTextColor(30, 41, 59);
+    doc.text('Name of Judge: ___________________________', margin + 36, evalBarY + 3.5);
+    doc.text('Designation & Org: ___________________________', margin + 118, evalBarY + 3.5);
+    doc.text('Domain / Role: ___________________________', margin + 204, evalBarY + 3.5);
+
+    tableStartY = evalBarY + 6.0;
+  }
+
+  // Table Body Rows (25 columns: Sr, Team Code, Project Title, 20 sub-criteria, Total, Rank)
+  // Last column (Jury Sign) removed as requested
   const tableRows = teamsList.map((team, idx) => [
     String(idx + 1),
     team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
@@ -860,14 +893,13 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
     '', '', '', '', '', // 3.1 to 3.5
     '', '', '', '', '', // 4.1 to 4.5
     '', // Total (50)
-    '', // Rank
-    ''  // Jury Sign
+    ''  // Rank
   ]);
 
   autoTable(doc, {
-    startY: startY,
-    margin: { left: 6.5, right: 6.5 },
-    tableWidth: 284,
+    startY: tableStartY,
+    margin: { left: 7, right: 7 },
+    tableWidth: 283,
     head: [
       [
         { content: 'Sr.', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
@@ -878,8 +910,7 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
         { content: '3. Polytechnic Innovation (10M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [14, 56, 104] } },
         { content: '4. Prototype Plan (10M)', colSpan: 5, styles: { halign: 'center', valign: 'middle', fillColor: [11, 45, 84] } },
         { content: 'Total\n(50)', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [10, 37, 64] } },
-        { content: 'Rank', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
-        { content: 'Jury\nSign', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } }
+        { content: 'Rank', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } }
       ],
       [
         { content: '1.1\n(3)', styles: { halign: 'center', fontSize: 5.2 } },
@@ -913,22 +944,22 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
       fontStyle: 'bold',
       lineWidth: 0.15,
       lineColor: [148, 163, 184],
-      cellPadding: { top: 1.2, bottom: 1.2, left: 0.5, right: 0.5 }
+      cellPadding: { top: 1.1, bottom: 1.1, left: 0.5, right: 0.5 }
     },
     bodyStyles: {
       fontSize: 6.5,
       lineColor: [203, 213, 225],
       lineWidth: 0.15,
       textColor: [15, 23, 42],
-      cellPadding: { top: 1.5, bottom: 1.5, left: 0.6, right: 0.6 }
+      cellPadding: { top: 1.25, bottom: 1.25, left: 0.6, right: 0.6 }
     },
     alternateRowStyles: {
       fillColor: [248, 250, 252]
     },
     columnStyles: {
-      0: { cellWidth: 7, halign: 'center', fontStyle: 'bold' },
-      1: { cellWidth: 17, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
-      2: { cellWidth: 59, fontStyle: 'bold' },
+      0: { cellWidth: 7.5, halign: 'center', fontStyle: 'bold' },
+      1: { cellWidth: 17.5, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
+      2: { cellWidth: 72, fontStyle: 'bold' }, // Expanded from 59mm for comfortable title reading
       3: { cellWidth: 8, halign: 'center' },
       4: { cellWidth: 8, halign: 'center' },
       5: { cellWidth: 8, halign: 'center' },
@@ -950,18 +981,20 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
       21: { cellWidth: 8, halign: 'center' },
       22: { cellWidth: 8, halign: 'center' },
       23: { cellWidth: 14, halign: 'center', fontStyle: 'bold', textColor: [14, 56, 104] },
-      24: { cellWidth: 11, halign: 'center', fontStyle: 'bold' },
-      25: { cellWidth: 16, halign: 'center' }
+      24: { cellWidth: 12, halign: 'center', fontStyle: 'bold' }
     }
   });
 
-  // Footer: Signatures for Chairperson and Jury Panel
   const finalY = doc.lastAutoTable.finalY + 2.5;
-  if (finalY < 192) {
+
+  // ==============================================================================
+  // JURY SIGNATURE SECTION ACCORDING TO SHEET VARIANT
+  // ==============================================================================
+  if (mode === 'all_seven') {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.8);
     doc.setTextColor(14, 56, 104);
-    doc.text('OFFICIAL JURY BOARD ENDORSEMENT & VALIDATION:', 10, finalY + 2.5);
+    doc.text('OFFICIAL JURY BOARD ENDORSEMENT & FINAL RANKING VALIDATION (ALL 7 MEMBERS):', 7, finalY + 2.5);
 
     const sigs = [
       'Chairperson, Jury Board',
@@ -972,43 +1005,142 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
       'Reserve Jury Member 1',
       'Reserve Jury Member 2'
     ];
-    const boxW = 37;
+    const totalW = 283;
+    const gap = 2.5;
+    const boxW = (totalW - (sigs.length - 1) * gap) / sigs.length; // ~38.2mm
     sigs.forEach((sig, sIdx) => {
-      const x = 10 + sIdx * 39.5;
+      const x = 7 + sIdx * (boxW + gap);
       doc.setDrawColor(180, 180, 180);
       doc.setLineDashPattern([1, 1], 0);
-      doc.line(x, finalY + 10.5, x + boxW, finalY + 10.5);
+      doc.line(x, finalY + 11.5, x + boxW, finalY + 11.5);
       doc.setLineDashPattern([], 0);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('helvetica', 'bold');
       doc.setFontSize(5.2);
-      doc.setTextColor(70, 70, 70);
-      doc.text(sig, x + boxW / 2, finalY + 13.5, { align: 'center' });
+      doc.setTextColor(50, 60, 80);
+      doc.text(sig, x + boxW / 2, finalY + 14.5, { align: 'center' });
     });
+  } else if (mode === 'core_only') {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(14, 56, 104);
+    doc.text('CORE EVALUATION JURY BOARD ENDORSEMENT & CLUSTER RANKING VALIDATION (5 CORE MEMBERS):', 7, finalY + 2.5);
+
+    const sigs = [
+      'Chairperson, Jury Board',
+      'Jury Member 1 (Academic & Tech)',
+      'Jury Member 2 (Tech Industry Leader)',
+      'Jury Member 3 (Industry & Innovation)',
+      'Jury Member 4 (Prototype & Feasibility)'
+    ];
+    const totalW = 283;
+    const gap = 3.5;
+    const boxW = (totalW - (sigs.length - 1) * gap) / sigs.length; // ~53.8mm
+    sigs.forEach((sig, sIdx) => {
+      const x = 7 + sIdx * (boxW + gap);
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineDashPattern([1, 1], 0);
+      doc.line(x, finalY + 12, x + boxW, finalY + 12);
+      doc.setLineDashPattern([], 0);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(5.6);
+      doc.setTextColor(50, 60, 80);
+      doc.text(sig, x + boxW / 2, finalY + 15.5, { align: 'center' });
+    });
+  } else if (mode === 'individual') {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(14, 56, 104);
+    doc.text('INDIVIDUAL EVALUATOR SCORING DECLARATION & SIGNATURE:', 7, finalY + 2.5);
+
+    // Left Box: Evaluator Remarks (width 165mm)
+    const boxY = finalY + 4;
+    const boxH = 17.5;
+    doc.setFillColor(250, 250, 252);
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(7, boxY, 165, boxH, 1.5, 1.5, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.2);
+    doc.setTextColor(71, 85, 105);
+    doc.text("EVALUATOR'S OVERALL OBSERVATIONS / KEY REMARKS:", 9, boxY + 3.8);
+
+    doc.setDrawColor(215, 220, 230);
+    doc.setLineDashPattern([1, 1], 0);
+    doc.line(9, boxY + 8.5, 169, boxY + 8.5);
+    doc.line(9, boxY + 13, 169, boxY + 13);
+    doc.setLineDashPattern([], 0);
+
+    // Right Box: Evaluator Signature Block (width 114mm)
+    doc.roundedRect(176, boxY, 114, boxH, 1.5, 1.5, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.2);
+    doc.setTextColor(14, 56, 104);
+    doc.text('EVALUATOR CERTIFICATION & ENDORSEMENT:', 178, boxY + 3.8);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.0);
+    doc.setTextColor(50, 60, 80);
+    doc.text('Evaluator Full Name: _____________________________________________', 178, boxY + 7.8);
+    doc.text('Jury Role / Position: _____________________________________________', 178, boxY + 11.6);
+    doc.text('Signature: __________________________   Date: 12-11-2026', 178, boxY + 15.5);
   }
 
-  // Footer note on Page 1 pointing to elaborated criteria
-  doc.setFontSize(6);
-  doc.setTextColor(120, 120, 120);
-  doc.text(
-    `* Note: See Pages 2 & 3 for complete elaborated descriptions and scoring levels (0, 1, 2, 3) for all 20 Sub-Criteria (1.1 through 4.5).`,
-    10,
-    pageHeight - 5
-  );
-  doc.text(`Page 1 of 3 (Master Scoring Matrix)`, pageWidth - 10, pageHeight - 5, { align: 'right' });
+  // ==============================================================================
+  // PROMINENT, HIGH-CONTRAST NOTE BOX AT BOTTOM (100% VISIBLE INSIDE PAGE FRAME)
+  // ==============================================================================
+  const noteBoxY = 186.5;
+  const noteBoxH = 7.5;
+  doc.setFillColor(241, 245, 249); // slate-100 fill
+  doc.setDrawColor(14, 56, 104);   // navy border
+  doc.setLineWidth(0.35);
+  doc.roundedRect(7, noteBoxY, pageWidth - 14, noteBoxH, 1.5, 1.5, 'FD');
 
-  // ==========================================
-  // PAGES 2 & 3: ALL CRITERIA ELABORATED GUIDE
-  // ==========================================
+  // Navy Pill Badge
+  doc.setFillColor(14, 56, 104);
+  doc.roundedRect(8.5, noteBoxY + 1.2, 34, 5.1, 1.2, 1.2, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.8);
+  doc.setTextColor(255, 255, 255);
+  doc.text('RUBRIC REFERENCE', 25.5, noteBoxY + 4.7, { align: 'center' });
+
+  // High contrast note text
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.2);
+  doc.setTextColor(15, 23, 42); // slate-900 (crisp and bold)
+  doc.text(
+    'See Pages 2 & 3 for complete elaborated descriptions and scoring criteria (Scores 0, 1, 2, 3) for all 20 Sub-Parameters (1.1 through 4.5).',
+    45.5,
+    noteBoxY + 4.7
+  );
+
+  // Sub-footer page number well inside page frame
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(
+    `Punjab Polytechnic Innovation Challenge- 2026-27 • Official Master Scoring Matrix • Page ${pageNumber} of ${totalPages}`,
+    8,
+    199.5
+  );
+  doc.text(`Host Center: ${EVENT_DETAILS.hostInstitute}`, pageWidth - 8, 199.5, { align: 'right' });
+};
+
+/**
+ * Internal helper to render the Elaborated Criteria Reference Guide (Pages 2 & 3)
+ */
+const renderRubricsElaborationPages = (doc, startPageNumber = 2, totalPages = 3) => {
+  const pageWidth = 297;
+  const pageHeight = 210;
+
   const rubricsPages = [
     {
-      pageNo: 2,
-      totalPages: 3,
+      pageNo: startPageNumber,
       title: 'Official Rubric Criteria Elaboration – Part A: Problem Understanding & Punjab Context',
       parameters: EVALUATION_PARAMETERS.slice(0, 2)
     },
     {
-      pageNo: 3,
-      totalPages: 3,
+      pageNo: startPageNumber + 1,
       title: 'Official Rubric Criteria Elaboration – Part B: Polytechnic Innovation & Prototype Plan',
       parameters: EVALUATION_PARAMETERS.slice(2, 4)
     }
@@ -1093,29 +1225,104 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
       }
     });
 
-    // Sub-footer on criteria pages
-    doc.setFontSize(6.2);
-    doc.setTextColor(110, 110, 110);
+    // Sub-footer on criteria pages well inside page border
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(100, 116, 139);
     doc.text(
-      `Punjab Polytechnic Innovation Challenge • Official 50-Mark Rubric Reference • Page ${pg.pageNo} of ${pg.totalPages}`,
+      `Punjab Polytechnic Innovation Challenge- 2026-27 • Official 50-Mark Rubric Reference • Page ${pg.pageNo} of ${totalPages}`,
       10,
-      pageHeight - 5
+      199.5
     );
-    doc.text(`Host Center: ${EVENT_DETAILS.hostInstitute}`, pageWidth - 10, pageHeight - 5, { align: 'right' });
+    doc.text(`Host Center: ${EVENT_DETAILS.hostInstitute}`, pageWidth - 10, 199.5, { align: 'right' });
+  });
+};
+
+/**
+ * Generates Master Scoring Matrix PDF:
+ * Page 1: Single master table with all 17 projects, each with 20 numbered sub-criteria columns (1.1 to 4.5),
+ *         Total / 50, and Rank.
+ *         Signature endorsement block rendered according to requested mode:
+ *         - 'all_seven': All 7 Jury Members (Full Board)
+ *         - 'core_only': Core Jury Board Only (5 Members)
+ *         - 'individual': Individual Evaluator Scoring Sheet
+ * Pages 2 & 3: Elaborated Rubric Guide explaining all 20 criteria in full detail.
+ */
+export const generateConsolidatedJuryMatrixPdf = (
+  teamsList = [],
+  mode = 'all_seven',
+  filename = null
+) => {
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4',
+    compress: true
   });
 
-  const outFname = filename || `Master_Jury_Scoring_Matrix_All_Projects_Bathinda_${EVENT_DETAILS.eventDate}.pdf`;
+  // Page 1: Master Matrix for requested mode
+  renderMasterMatrixPage(doc, teamsList, mode, 1, 3);
+
+  // Pages 2 & 3: Elaborated Criteria Reference
+  renderRubricsElaborationPages(doc, 2, 3);
+
+  const suffix =
+    mode === 'core_only'
+      ? 'Core_Board_5'
+      : mode === 'individual'
+      ? 'Individual_Evaluator'
+      : 'Full_Board_7';
+
+  const outFname =
+    filename || `Master_Jury_Scoring_Matrix_${suffix}_Bathinda_${EVENT_DETAILS.eventDate}.pdf`;
+  doc.save(outFname);
+};
+
+/**
+ * Generates a complete 5-Page PDF containing all 3 Master Score Sheets:
+ * Page 1: Sheet 1 (All 7 Jury Members)
+ * Page 2: Sheet 2 (Core Jury Board Only - 5 Members)
+ * Page 3: Sheet 3 (Individual Evaluator Scoring Sheet)
+ * Pages 4 & 5: Complete Elaborated Criteria Reference Guide
+ */
+export const generateAllThreeMasterSheetsPdf = (teamsList = [], filename = null) => {
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4',
+    compress: true
+  });
+
+  // Page 1: Sheet 1 (All 7 Jury Members)
+  renderMasterMatrixPage(doc, teamsList, 'all_seven', 1, 5);
+
+  // Page 2: Sheet 2 (Core Jury Board Only - 5 Members)
+  doc.addPage('a4', 'landscape');
+  renderMasterMatrixPage(doc, teamsList, 'core_only', 2, 5);
+
+  // Page 3: Sheet 3 (Individual Evaluator Scoring Sheet)
+  doc.addPage('a4', 'landscape');
+  renderMasterMatrixPage(doc, teamsList, 'individual', 3, 5);
+
+  // Pages 4 & 5: Complete Elaborated Criteria Reference Guide
+  renderRubricsElaborationPages(doc, 4, 5);
+
+  const outFname =
+    filename || `All_3_Master_Jury_Score_Sheets_Complete_Bathinda_${EVENT_DETAILS.eventDate}.pdf`;
   doc.save(outFname);
 };
 
 /**
  * Export Rubrics & Criteria to Multi-Tab Excel Workbook
+ * Tab 1: Full Board (All 7 Jury Signatures)
+ * Tab 2: Core Board Only (5 Members)
+ * Tab 3: Individual Evaluator Scoring Sheet
+ * Tab 4: Official Rubrics & Descriptors (20 Sub-parameters)
  */
 export const exportRubricsToExcel = (teamsList = []) => {
   const wb = XLSX.utils.book_new();
 
-  // Tab 1: Master Scoring Matrix (All Projects with 20 Criteria Columns)
-  const masterMatrixRows = (teamsList || []).map((team, idx) => ({
+  const baseCriteriaRow = (team, idx) => ({
     'Sr. No.': idx + 1,
     'Team Code': team.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
     'Project Title of Innovation': team.projectTitle,
@@ -1140,13 +1347,45 @@ export const exportRubricsToExcel = (teamsList = []) => {
     '4.4 Development timeline (2)': '',
     '4.5 Testing & improvement plan (2)': '',
     'Total Score (50)': '',
-    'Cluster Rank': '',
-    'Jury Signature / Remarks': ''
-  }));
-  const wsMaster = XLSX.utils.json_to_sheet(masterMatrixRows);
-  XLSX.utils.book_append_sheet(wb, wsMaster, 'Master Scoring Matrix (20)');
+    'Cluster Rank': ''
+  });
 
-  // Tab 2: Official Rubrics Matrix (20 Sub-parameters)
+  // Tab 1: Master Scoring Matrix - Full Board (All 7 Members)
+  const rowsAll7 = (teamsList || []).map((team, idx) => ({
+    ...baseCriteriaRow(team, idx),
+    'Chairperson Sign': '',
+    'Jury Member 1 Sign': '',
+    'Jury Member 2 Sign': '',
+    'Jury Member 3 Sign': '',
+    'Jury Member 4 Sign': '',
+    'Reserve 1 Sign': '',
+    'Reserve 2 Sign': ''
+  }));
+  const wsAll7 = XLSX.utils.json_to_sheet(rowsAll7);
+  XLSX.utils.book_append_sheet(wb, wsAll7, 'Full Board (7 Jury)');
+
+  // Tab 2: Master Scoring Matrix - Core Board Only (5 Members)
+  const rowsCore = (teamsList || []).map((team, idx) => ({
+    ...baseCriteriaRow(team, idx),
+    'Chairperson Sign': '',
+    'Jury Member 1 Sign': '',
+    'Jury Member 2 Sign': '',
+    'Jury Member 3 Sign': '',
+    'Jury Member 4 Sign': ''
+  }));
+  const wsCore = XLSX.utils.json_to_sheet(rowsCore);
+  XLSX.utils.book_append_sheet(wb, wsCore, 'Core Board (5 Jury)');
+
+  // Tab 3: Individual Evaluator Scoring Sheet
+  const rowsIndiv = (teamsList || []).map((team, idx) => ({
+    ...baseCriteriaRow(team, idx),
+    'Evaluator Observations / Remarks': '',
+    'Evaluator Signature': ''
+  }));
+  const wsIndiv = XLSX.utils.json_to_sheet(rowsIndiv);
+  XLSX.utils.book_append_sheet(wb, wsIndiv, 'Individual Score Sheet');
+
+  // Tab 4: Official Rubrics Matrix (20 Sub-parameters)
   const rubricsData = RUBRICS_FLAT_LIST.map((r) => ({
     'No.': r.number,
     'Evaluation Parameter': r.parameterTitle,
@@ -1160,5 +1399,5 @@ export const exportRubricsToExcel = (teamsList = []) => {
   const wsRubrics = XLSX.utils.json_to_sheet(rubricsData);
   XLSX.utils.book_append_sheet(wb, wsRubrics, 'Rubrics & Descriptors (50)');
 
-  XLSX.writeFile(wb, `Master_Jury_Scoring_Matrix_Bathinda_${EVENT_DETAILS.eventDate}.xlsx`);
+  XLSX.writeFile(wb, `Master_Jury_Scoring_Matrix_All_Variants_Bathinda_${EVENT_DETAILS.eventDate}.xlsx`);
 };
