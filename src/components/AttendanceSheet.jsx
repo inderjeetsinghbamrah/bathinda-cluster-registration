@@ -23,6 +23,7 @@ import {
   formatAttendanceData,
   paginateAttendanceTeams,
   exportAttendanceToExcel,
+  generateVectorAttendancePdf,
   downloadAttendancePdf
 } from '../lib/attendanceUtils';
 import {
@@ -107,17 +108,19 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
     return filteredTeams.reduce((acc, t) => acc + t.students.length, 0);
   }, [filteredTeams]);
 
-  // Handle PDF Download
+  // Handle PDF Download (True Vector PDF with crisp merged cells and embedded logos)
   const handleDownloadPdf = async () => {
-    if (!printContainerRef.current) return;
+    if (!filteredTeams || filteredTeams.length === 0) {
+      alert('No team records found to export.');
+      return;
+    }
     setIsExportingPdf(true);
-    setExportProgress({ current: 0, total: pages.length, status: 'Preparing attendance sheet...' });
+    setExportProgress({ current: 0, total: pages.length, status: 'Generating Vector PDF...' });
 
     try {
+      await new Promise((resolve) => setTimeout(resolve, 60));
       const filename = `Attendance_Sheet_${EVENT_DETAILS.cluster.replace(/\s+/g, '_')}_${EVENT_DETAILS.eventDate}.pdf`;
-      await downloadAttendancePdf(printContainerRef.current, filename, (progress) => {
-        setExportProgress(progress);
-      });
+      generateVectorAttendancePdf(filteredTeams, filename, studentsPerPage);
     } catch (err) {
       console.error('PDF export error:', err);
       alert('Failed to generate PDF: ' + err.message);
@@ -141,7 +144,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 py-6 px-3 sm:px-6 font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="attendance-sheet-wrapper min-h-screen bg-slate-100 py-6 px-3 sm:px-6 font-['Plus_Jakarta_Sans',sans-serif]">
       {/* 1. TOP CONTROL TOOLBAR (Hidden in Print) */}
       <div className="max-w-[1400px] mx-auto mb-6 bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-sm no-print">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100">
@@ -373,7 +376,6 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
               className="attendance-page-sheet bg-white text-slate-900 shadow-xl rounded-2xl border-2 border-[#0e3868] p-4 sm:p-5 relative"
               style={{
                 width: '1120px',
-                minHeight: '790px',
                 boxSizing: 'border-box',
                 backgroundColor: '#ffffff'
               }}
@@ -470,7 +472,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       <th
                         rowSpan={2}
                         className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '16%' }}
+                        style={{ width: '15.5%' }}
                       >
                         Name of Institution
                         <br />
@@ -481,7 +483,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       <th
                         rowSpan={2}
                         className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '13%' }}
+                        style={{ width: '12.5%' }}
                       >
                         Faculty Mentor
                         <br />
@@ -492,7 +494,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       <th
                         rowSpan={2}
                         className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '17%' }}
+                        style={{ width: '16%' }}
                       >
                         Project Idea / Title of Innovation
                       </th>
@@ -508,7 +510,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       <th
                         colSpan={5}
                         className="p-1.5 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]"
-                        style={{ width: '37.5%' }}
+                        style={{ width: '39.5%' }}
                       >
                         Student Details
                       </th>
@@ -522,7 +524,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       <th className="p-1 border border-[#94a3b8]" style={{ width: '13%' }}>
                         Student Name
                       </th>
-                      <th className="p-1 border border-[#94a3b8]" style={{ width: '11%' }}>
+                      <th className="p-1 border border-[#94a3b8]" style={{ width: '13%' }}>
                         Roll No.
                       </th>
                       <th className="p-1 border border-[#94a3b8]" style={{ width: '4.5%' }}>
@@ -630,7 +632,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                               </td>
 
                               {/* Roll No */}
-                              <td className="p-1 text-center font-mono font-bold text-slate-800 text-[10px] border border-[#cbd5e1] align-middle whitespace-nowrap overflow-hidden">
+                              <td className="roll-no-cell p-1 px-1.5 text-center font-mono font-bold text-slate-800 text-[10px] border border-[#cbd5e1] align-middle whitespace-nowrap overflow-visible">
                                 {st.registrationNo}
                               </td>
 
@@ -642,9 +644,9 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                               {/* Signature Blank Box */}
                               <td
                                 className="p-1 border border-[#cbd5e1] align-middle bg-white/70"
-                                style={{ minHeight: '38px', height: '38px' }}
+                                style={{ minHeight: '32px', height: '32px' }}
                               >
-                                <div className="w-full h-full min-h-[34px]"></div>
+                                <div className="w-full h-full min-h-[28px]"></div>
                               </td>
                             </tr>
                           );

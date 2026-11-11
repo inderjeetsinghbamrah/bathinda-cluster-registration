@@ -53,14 +53,16 @@
 @media print {
   @page {
     size: A4 landscape;
-    margin: 6mm;
+    margin: 5mm;
   }
 
-  body {
+  html, body {
     background-color: white !important;
     color: black !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -82,6 +84,13 @@
     page-break-inside: avoid;
   }
 
+  .attendance-sheet-wrapper {
+    background-color: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+  }
+
   .attendance-sheet-print-container {
     display: block !important;
     width: 100% !important;
@@ -92,25 +101,51 @@
 
   .attendance-page-sheet {
     box-shadow: none !important;
-    border: 2px solid #0e3868 !important;
+    border: 1.5px solid #0e3868 !important;
+    border-radius: 4px !important;
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 0 15px 0 !important;
-    page-break-after: always;
-    page-break-inside: avoid;
-    break-after: page;
-    break-inside: avoid;
-    padding: 12px !important;
+    min-height: auto !important;
+    max-height: 195mm !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 4mm 6mm !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
     box-sizing: border-box !important;
-    border-radius: 0 !important;
+    overflow: hidden !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
+  .attendance-page-sheet:last-of-type,
   .attendance-page-sheet:last-child {
-    page-break-after: auto;
-    break-after: auto;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
     margin-bottom: 0 !important;
+  }
+
+  /* Table rules for print */
+  .attendance-page-sheet table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+
+  .attendance-page-sheet th,
+  .attendance-page-sheet td {
+    padding: 2.5px 3px !important;
+    font-size: 8.5px !important;
+    line-height: 1.2 !important;
+  }
+
+  .attendance-page-sheet td.roll-no-cell {
+    font-size: 9px !important;
+    letter-spacing: -0.2px !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
   }
 
   * {

@@ -1,6 +1,11 @@
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import autoTable from 'jspdf-autotable';
+import {
+  LOGO_PUNJAB_GOVT,
+  LOGO_TECH_ED,
+  LOGO_GPC_BATHINDA
+} from './logos.js';
 
 export const EVENT_DETAILS = {
   eventName: 'Punjab Polytechnic Innovation Challenge- 2026-27',
@@ -284,60 +289,223 @@ export const exportAttendanceToExcel = (teams = [], filename = '') => {
 };
 
 /**
- * Download attendance sheet as high-resolution A4 Landscape PDF
+ * Download attendance sheet as pure crisp Vector PDF using jsPDF + jspdf-autotable.
+ * This guarantees:
+ * 1. 100% reliable merged cell rendering (no blank/clipped cells).
+ * 2. True vector sharpness (no fuzzy canvas rasterization).
+ * 3. Exact page breaks for A4 Landscape without overflow.
  */
-export const downloadAttendancePdf = async (containerRef, filename = '', onProgress = null) => {
-  if (!containerRef) {
-    throw new Error('Container reference missing for PDF download');
+export const generateVectorAttendancePdf = (
+  teams = [],
+  filename = '',
+  maxStudentsPerPage = 11
+) => {
+  if (!teams || teams.length === 0) {
+    throw new Error('No team records found to export to PDF');
   }
 
-  const pageElements = containerRef.querySelectorAll('.attendance-page-sheet');
-  if (!pageElements || pageElements.length === 0) {
-    throw new Error('No attendance sheet pages found to export');
-  }
-
-  const totalPages = pageElements.length;
-  const pdf = new jsPDF({
+  const pages = paginateAttendanceTeams(teams, maxStudentsPerPage);
+  const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
     format: 'a4',
     compress: true
   });
 
-  const pdfWidth = 297;
-  const pdfHeight = 210;
+  const pageWidth = 297;
+  const pageHeight = 210;
+  const margin = 8;
 
-  for (let i = 0; i < totalPages; i++) {
-    if (onProgress) {
-      onProgress({ current: i + 1, total: totalPages, status: `Rendering page ${i + 1} of ${totalPages}...` });
+  pages.forEach((pageTeams, pageIdx) => {
+    if (pageIdx > 0) doc.addPage('a4', 'landscape');
+
+    // Outer Page Border
+    doc.setDrawColor(14, 56, 104);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(margin, margin, pageWidth - margin * 2, pageHeight - margin * 2, 3, 3, 'S');
+
+    // Header Left: Punjab Govt & Tech Ed Logos
+    try {
+      doc.addImage(LOGO_PUNJAB_GOVT, 'JPEG', margin + 3, margin + 3, 14, 14);
+      doc.addImage(LOGO_TECH_ED, 'JPEG', margin + 19, margin + 4.5, 11, 11);
+    } catch (e) {
+      console.warn('Failed to embed left logos in PDF:', e);
     }
 
-    const pageEl = pageElements[i];
+    // PSBTE Text
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(14, 56, 104);
+    doc.text(EVENT_DETAILS.boardName, margin + 32, margin + 8);
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('Punjab State Board of Technical Education\n& Industrial Training Punjab', margin + 32, margin + 11.5);
 
-    // Render page with html2canvas
-    const canvas = await html2canvas(pageEl, {
-      scale: 2, // High resolution crisp rendering
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      windowWidth: 1200,
-      scrollX: 0,
-      scrollY: 0
+    // Title Center
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(14, 56, 104);
+    doc.text(EVENT_DETAILS.eventName, pageWidth / 2, margin + 7, { align: 'center' });
+
+    // Center Pill Banner
+    doc.setFillColor(14, 56, 104);
+    doc.roundedRect(pageWidth / 2 - 45, margin + 9.5, 90, 5.5, 2.75, 2.75, 'F');
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text(EVENT_DETAILS.subtitle, pageWidth / 2, margin + 13.5, { align: 'center' });
+
+    // Center Meta Bar
+    doc.setFillColor(241, 245, 249);
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(pageWidth / 2 - 68, margin + 16.5, 136, 4.5, 2.25, 2.25, 'FD');
+    doc.setFontSize(7);
+    doc.setTextColor(30, 41, 59);
+    doc.text(`Cluster: Bathinda   |   Venue / Host: ${EVENT_DETAILS.hostInstitute}   |   Date: ${EVENT_DETAILS.eventDate}`, pageWidth / 2, margin + 19.8, { align: 'center' });
+
+    // Header Right: GPC Bathinda Logo
+    try {
+      doc.addImage(LOGO_GPC_BATHINDA, 'JPEG', pageWidth - margin - 17, margin + 3, 14, 14);
+    } catch (e) {
+      console.warn('Failed to embed right logo in PDF:', e);
+    }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(14, 56, 104);
+    doc.text(EVENT_DETAILS.hostInstitute, pageWidth - margin - 19, margin + 9, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Host Institute & Nodal Center', pageWidth - margin - 19, margin + 12.5, { align: 'right' });
+
+    // Table Body with proper rowSpan
+    const tableBody = [];
+    pageTeams.forEach((team, tIdx) => {
+      const studentCount = team.students.length || 1;
+      const teamBg = tIdx % 2 === 0 ? [254, 253, 245] : [240, 247, 255];
+
+      team.students.forEach((st, sIdx) => {
+        const isFirst = sIdx === 0;
+        const row = [];
+
+        if (isFirst) {
+          row.push(
+            { content: String(team.globalSrNo), rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
+            { content: team.instituteName, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
+            { content: `${team.mentorName}\n(${team.mentorContact})`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
+            { content: team.projectTitle, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
+            { content: `[${team.theme.code}]\n${team.theme.name}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } }
+          );
+        }
+
+        row.push(
+          { content: String(st.studentOrder), styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
+          { content: st.studentName, styles: { halign: 'left', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
+          { content: st.registrationNo, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
+          { content: st.semester, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
+          { content: '', styles: { minCellHeight: 8.5, fillColor: [255, 255, 255] } }
+        );
+
+        tableBody.push(row);
+      });
     });
 
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    // AutoTable Call
+    autoTable(doc, {
+      startY: margin + 23,
+      margin: { left: 11, right: 11 },
+      tableWidth: 275,
+      head: [
+        [
+          { content: 'Sr.\nNo.', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Name of Institution\n(College / Polytechnic)', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Faculty Mentor\n(Name & Contact No.)', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Project Idea / Title of Innovation', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Theme /\nThematic Domain', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Student Details', colSpan: 5, styles: { halign: 'center' } }
+        ],
+        [
+          { content: 'S. No.', styles: { halign: 'center' } },
+          { content: 'Student Name', styles: { halign: 'left' } },
+          { content: 'Roll No.', styles: { halign: 'center' } },
+          { content: 'Semester', styles: { halign: 'center' } },
+          { content: 'Signature', styles: { halign: 'center' } }
+        ]
+      ],
+      body: tableBody,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [14, 56, 104],
+        textColor: [255, 255, 255],
+        fontSize: 7.5,
+        fontStyle: 'bold',
+        lineWidth: 0.15,
+        lineColor: [148, 163, 184]
+      },
+      bodyStyles: {
+        fontSize: 7.5,
+        lineWidth: 0.15,
+        lineColor: [203, 213, 225],
+        textColor: [15, 23, 42]
+      },
+      columnStyles: {
+        0: { cellWidth: 9 },   // Sr. No.
+        1: { cellWidth: 44 },  // Institution
+        2: { cellWidth: 35 },  // Mentor
+        3: { cellWidth: 46 },  // Project
+        4: { cellWidth: 36 },  // Theme
+        5: { cellWidth: 9 },   // S. No.
+        6: { cellWidth: 33 },  // Student Name
+        7: { cellWidth: 26 },  // Roll No
+        8: { cellWidth: 18 },  // Semester
+        9: { cellWidth: 19 }   // Signature
+      }
+    });
 
-    if (i > 0) {
-      pdf.addPage('a4', 'landscape');
-    }
+    // Footer Signatures
+    const footerY = pageHeight - margin - 15;
+    doc.setDrawColor(180, 180, 180);
+    doc.setLineDashPattern([1.5, 1.5], 0);
+    doc.line(margin + 12, footerY, margin + 60, footerY);
+    doc.line(pageWidth / 2 - 25, footerY, pageWidth / 2 + 25, footerY);
+    doc.line(pageWidth - margin - 60, footerY, pageWidth - margin - 12, footerY);
+    doc.setLineDashPattern([], 0);
 
-    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-  }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(30, 41, 59);
+    doc.text('Faculty Mentor Signature', margin + 36, footerY + 3.5, { align: 'center' });
+    doc.text('Jury / Evaluator Signature', pageWidth / 2, footerY + 3.5, { align: 'center' });
+    doc.text('Cluster Coordinator / Principal', pageWidth - margin - 36, footerY + 3.5, { align: 'center' });
 
-  if (onProgress) {
-    onProgress({ current: totalPages, total: totalPages, status: 'Finalizing PDF download...' });
-  }
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6);
+    doc.setTextColor(100, 100, 100);
+    doc.text('(Accompanying Official / Mentor)', margin + 36, footerY + 6.5, { align: 'center' });
+    doc.text('(Competition Evaluation Committee)', pageWidth / 2, footerY + 6.5, { align: 'center' });
+    doc.text(EVENT_DETAILS.hostInstitute, pageWidth - margin - 36, footerY + 6.5, { align: 'center' });
+
+    // Sub-footer
+    doc.setFontSize(6.5);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Punjab Polytechnic Innovation Challenge- 2026-27 • ${EVENT_DETAILS.cluster} • Host: ${EVENT_DETAILS.hostInstitute}`, margin + 5, pageHeight - margin - 3);
+    doc.text(`Page ${pageIdx + 1} of ${pages.length}`, pageWidth - margin - 5, pageHeight - margin - 3, { align: 'right' });
+  });
 
   const fname = filename || `Attendance_Sheet_Punjab_Polytechnic_Innovation_Challenge_${EVENT_DETAILS.eventDate}.pdf`;
-  pdf.save(fname);
+  doc.save(fname);
+};
+
+export const downloadAttendancePdf = async (
+  teamsOrContainer,
+  filename = '',
+  onProgress = null,
+  maxStudentsPerPage = 11
+) => {
+  if (Array.isArray(teamsOrContainer)) {
+    return generateVectorAttendancePdf(teamsOrContainer, filename, maxStudentsPerPage);
+  }
+  // If called without teams array, cannot proceed
+  throw new Error('Please pass the formatted teams array to generate the Vector PDF.');
 };
