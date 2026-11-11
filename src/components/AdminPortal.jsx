@@ -889,8 +889,29 @@ export const AdminPortal = () => {
         ) : viewMode === 'reorder' ? (
           <ReorderTableView
             submissions={submissions}
+            authToken={token}
             onOpenAttendance={() => setViewMode('attendance')}
             onBack={() => setViewMode('institutes')}
+            onSubmissionsUpdate={(reorderedList) => {
+              if (Array.isArray(reorderedList)) {
+                setSubmissions((prev) => {
+                  const copy = JSON.parse(JSON.stringify(prev));
+                  reorderedList.forEach((team) => {
+                    const sub = copy.find((s) => s.id === team.submissionId);
+                    if (sub && sub.raw_payload && Array.isArray(sub.raw_payload.teams)) {
+                      const tIdx = sub.raw_payload.teams.findIndex(
+                        (rt) => rt.teamNumber === team.teamNumber
+                      );
+                      if (tIdx !== -1) {
+                        sub.raw_payload.teams[tIdx].teamCode = team.teamCode;
+                        sub.raw_payload.teams[tIdx].sequenceOrder = team.sequenceOrder;
+                      }
+                    }
+                  });
+                  return copy;
+                });
+              }
+            }}
             onEditSubmission={(subId) => {
               const sub = submissions.find((s) => s.id === subId);
               if (sub) setEditingSubmission(sub);

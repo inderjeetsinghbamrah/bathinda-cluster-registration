@@ -558,8 +558,8 @@ export const JuryRubricsSection = ({
               >
                 <option value="blank">★ Blank Master Template (Print for Any Team)</option>
                 {formattedTeams.map((t, idx) => (
-                  <option key={t.submissionCode} value={t.submissionCode}>
-                    Project {idx + 1}: [{t.submissionCode}] {t.projectTitle.substring(0, 45)}... ({t.instituteName})
+                  <option key={t.teamKey || t.submissionCode} value={t.submissionCode}>
+                    {t.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`}: {t.projectTitle.substring(0, 45)}... ({t.instituteName})
                   </option>
                 ))}
               </select>
@@ -849,8 +849,8 @@ export const JuryRubricsSection = ({
                   className="py-1.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {formattedTeams.map((t, idx) => (
-                    <option key={t.submissionCode} value={t.submissionCode}>
-                      #{idx + 1}: [{t.submissionCode}] {t.projectTitle.substring(0, 45)}... ({t.instituteName})
+                    <option key={t.teamKey || t.submissionCode} value={t.submissionCode}>
+                      {t.teamCode || `TEAM ${String(idx + 1).padStart(2, '0')}`}: {t.projectTitle.substring(0, 45)}... ({t.instituteName})
                     </option>
                   ))}
                 </select>

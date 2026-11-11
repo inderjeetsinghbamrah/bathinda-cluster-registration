@@ -439,6 +439,98 @@ router.post('/update-submission', async (req, res) => {
   }
 });
 
+// 6. POST /api/admin/save-team-order
+router.post('/save-team-order', async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.replace(/^Bearer\s+/, '').trim();
+
+    if (!verifyAdminToken(token)) {
+      return res.status(401).json({ success: false, message: 'Unauthorized session.' });
+    }
+
+    const { teamOrders } = req.body || {};
+    if (!Array.isArray(teamOrders) || teamOrders.length === 0) {
+      return res.status(400).json({ success: false, message: 'teamOrders array is required.' });
+    }
+
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) {
+      return res.status(500).json({ success: false, message: 'Supabase credentials missing.' });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Group teamOrders by submissionId
+    const ordersBySub = new Map();
+    teamOrders.forEach((item) => {
+      if (!item.submissionId) return;
+      if (!ordersBySub.has(item.submissionId)) {
+        ordersBySub.set(item.submissionId, []);
+      }
+      ordersBySub.get(item.submissionId).push(item);
+    });
+
+    const updatePromises = Array.from(ordersBySub.entries()).map(async ([subId, items]) => {
+      const { data: sub, error: fetchErr } = await supabase
+        .from('cluster_submissions')
+        .select('raw_payload')
+        .eq('id', subId)
+        .single();
+
+      if (fetchErr || !sub) {
+        console.warn(`Could not find submission ${subId} to update team order`);
+        return;
+      }
+
+      const raw = sub.raw_payload || {};
+      const rawTeams = Array.isArray(raw.teams) ? [...raw.teams] : [];
+
+      items.forEach((item) => {
+        const teamNum = item.teamNumber || 1;
+        let teamIndex = rawTeams.findIndex((rt) => rt.teamNumber === teamNum);
+        if (teamIndex === -1 && rawTeams[teamNum - 1]) {
+          teamIndex = teamNum - 1;
+        }
+
+        if (teamIndex !== -1 && rawTeams[teamIndex]) {
+          rawTeams[teamIndex] = {
+            ...rawTeams[teamIndex],
+            teamCode: item.teamCode,
+            sequenceOrder: item.sequenceOrder
+          };
+        }
+      });
+
+      const updatedRawPayload = {
+        ...raw,
+        teams: rawTeams
+      };
+
+      const { error: updateErr } = await supabase
+        .from('cluster_submissions')
+        .update({ raw_payload: updatedRawPayload })
+        .eq('id', subId);
+
+      if (updateErr) {
+        throw new Error(`Failed to update submission ${subId}: ${updateErr.message}`);
+      }
+    });
+
+    await Promise.all(updatePromises);
+
+    return res.json({
+      success: true,
+      updatedCount: teamOrders.length,
+      message: `Successfully saved ${teamOrders.length} team codes to database.`
+    });
+  } catch (err) {
+    console.error('Save team order error:', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Standard Vercel Serverless Function entry point
 const app = express();
 app.use('/api/admin', router);

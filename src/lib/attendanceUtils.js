@@ -90,6 +90,54 @@ export const clearCustomTeamOrder = () => {
 };
 
 /**
+ * Saves sequenced team order and assigned team codes (e.g. TEAM 01, TEAM 02)
+ * to both browser local storage and Supabase database.
+ */
+export const saveTeamOrderToDatabase = async (orderedTeams = [], authToken = '') => {
+  if (!Array.isArray(orderedTeams) || orderedTeams.length === 0) {
+    return { success: false, message: 'No teams provided to save' };
+  }
+
+  // 1. Save keys locally for instant sync
+  const keys = orderedTeams.map((t) => t.teamKey);
+  saveCustomTeamOrder(keys);
+
+  // 2. Prepare payload for database
+  const teamOrders = orderedTeams.map((t, idx) => {
+    const seq = idx + 1;
+    const teamCode = `TEAM ${String(seq).padStart(2, '0')}`;
+    return {
+      submissionId: t.submissionId,
+      teamNumber: t.teamNumber || 1,
+      teamCode: teamCode,
+      sequenceOrder: seq
+    };
+  });
+
+  // 3. Post to backend
+  try {
+    const token =
+      authToken ||
+      (typeof window !== 'undefined' ? localStorage.getItem('cluster_admin_token') : '');
+
+    const res = await fetch('/api/admin/save-team-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token || ''}`
+      },
+      body: JSON.stringify({ teamOrders })
+    });
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error('Error saving team order to database:', err);
+    return { success: false, message: err.message };
+  }
+};
+
+/**
  * Transforms raw Supabase submissions into flattened, normalized teams and students
  * suitable for the official Attendance Sheet layout and Reorderable Table.
  */
@@ -164,21 +212,38 @@ export const formatAttendanceData = (
           code: themeDomain.code,
           name: themeDomain.name.trim().toUpperCase()
         },
-        students: formattedStudents
+        students: formattedStudents,
+        savedSequenceOrder: rawTeam?.sequenceOrder ?? null,
+        savedTeamCode: rawTeam?.teamCode ?? null
       });
     });
   });
 
   // Sort according to requested mode
-  if (sortBy === 'custom' && effectiveCustomKeys.length > 0) {
-    const keyMap = new Map();
-    effectiveCustomKeys.forEach((k, idx) => keyMap.set(k, idx));
-    formattedTeams.sort((a, b) => {
-      const idxA = keyMap.has(a.teamKey) ? keyMap.get(a.teamKey) : 9999;
-      const idxB = keyMap.has(b.teamKey) ? keyMap.get(b.teamKey) : 9999;
-      if (idxA !== idxB) return idxA - idxB;
-      return a.instituteName.localeCompare(b.instituteName);
-    });
+  if (sortBy === 'custom') {
+    if (effectiveCustomKeys.length > 0) {
+      const keyMap = new Map();
+      effectiveCustomKeys.forEach((k, idx) => keyMap.set(k, idx));
+      formattedTeams.sort((a, b) => {
+        const idxA = keyMap.has(a.teamKey) ? keyMap.get(a.teamKey) : 9999;
+        const idxB = keyMap.has(b.teamKey) ? keyMap.get(b.teamKey) : 9999;
+        if (idxA !== idxB) return idxA - idxB;
+        return a.instituteName.localeCompare(b.instituteName);
+      });
+    } else {
+      // Check if sequenceOrder was saved in DB
+      const hasSavedOrder = formattedTeams.some((t) => t.savedSequenceOrder != null);
+      if (hasSavedOrder) {
+        formattedTeams.sort((a, b) => {
+          const ordA = a.savedSequenceOrder != null ? a.savedSequenceOrder : 9999;
+          const ordB = b.savedSequenceOrder != null ? b.savedSequenceOrder : 9999;
+          if (ordA !== ordB) return ordA - ordB;
+          return a.instituteName.localeCompare(b.instituteName);
+        });
+      } else {
+        formattedTeams.sort((a, b) => a.instituteName.localeCompare(b.instituteName));
+      }
+    }
   } else if (sortBy === 'host_first') {
     formattedTeams.sort((a, b) => {
       const isHostA = a.instituteName.toLowerCase().includes('government') && a.instituteName.toLowerCase().includes('bathinda');
@@ -201,11 +266,17 @@ export const formatAttendanceData = (
     formattedTeams.sort((a, b) => a.submissionCode.localeCompare(b.submissionCode));
   }
 
-  // Renumber globalSrNo sequentially
-  return formattedTeams.map((t, idx) => ({
-    ...t,
-    globalSrNo: idx + 1
-  }));
+  // Renumber globalSrNo sequentially and assign uniform teamCode (e.g. TEAM 01, TEAM 02)
+  return formattedTeams.map((t, idx) => {
+    const seq = idx + 1;
+    const teamCode = `TEAM ${String(seq).padStart(2, '0')}`;
+    return {
+      ...t,
+      globalSrNo: seq,
+      sequenceOrder: seq,
+      teamCode: teamCode
+    };
+  });
 };
 
 /**
@@ -218,10 +289,15 @@ export const moveTeamInList = (teams = [], fromIndex, toIndex) => {
   const updated = [...teams];
   const [moved] = updated.splice(fromIndex, 1);
   updated.splice(toIndex, 0, moved);
-  return updated.map((t, idx) => ({
-    ...t,
-    globalSrNo: idx + 1
-  }));
+  return updated.map((t, idx) => {
+    const seq = idx + 1;
+    return {
+      ...t,
+      globalSrNo: seq,
+      sequenceOrder: seq,
+      teamCode: `TEAM ${String(seq).padStart(2, '0')}`
+    };
+  });
 };
 
 /**
@@ -264,9 +340,11 @@ export const exportAttendanceToExcel = (teams = [], filename = '') => {
 
   const excelRows = [];
   teams.forEach((t) => {
+    const teamCode = t.teamCode || `TEAM ${String(t.globalSrNo).padStart(2, '0')}`;
     t.students.forEach((s) => {
       excelRows.push({
-        'Sr. No.': t.globalSrNo,
+        'Team Code': teamCode,
+        'Sequence No': t.globalSrNo,
         'Name of Institution': String(t.instituteName || '').toUpperCase(),
         'Faculty Mentor': `${String(t.mentorName || '').toUpperCase()}${t.mentorContact ? ` (${t.mentorContact})` : ''}`,
         'Faculty Mentor Attendance': '', // Blank for physical signature
@@ -288,7 +366,8 @@ export const exportAttendanceToExcel = (teams = [], filename = '') => {
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Sheet');
 
   const cols = [
-    { wch: 8 },  // Sr. No.
+    { wch: 14 }, // Team Code
+    { wch: 12 }, // Sequence No
     { wch: 35 }, // Institute
     { wch: 25 }, // Mentor
     { wch: 18 }, // Mentor Attendance
@@ -402,12 +481,13 @@ export const generateVectorAttendancePdf = (
         const row = [];
 
         if (isFirst) {
+          const teamCodeText = team.teamCode || `TEAM ${String(team.globalSrNo).padStart(2, '0')}`;
           row.push(
-            { content: String(team.globalSrNo), rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
+            { content: `${teamCodeText}\n(#${team.globalSrNo})`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
             { content: String(team.instituteName || '').toUpperCase(), rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
             { content: `${String(team.mentorName || '').toUpperCase()}${team.mentorContact ? `\n(${team.mentorContact})` : ''}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
             { content: '', rowSpan: studentCount, styles: { minCellHeight: rowMinHeight, fillColor: [255, 255, 255] } },
-            { content: String(team.projectTitle || '').toUpperCase(), rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
+            { content: `[${teamCodeText}]\n${String(team.projectTitle || '').toUpperCase()}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
             { content: `[${team.theme.code}]\n${String(team.theme.name || '').toUpperCase()}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } }
           );
         }
@@ -431,7 +511,7 @@ export const generateVectorAttendancePdf = (
       tableWidth: 275,
       head: [
         [
-          { content: 'Sr.\nNo.', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Team Code\n& Seq.', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
           { content: 'Name of Institution\n(College / Polytechnic)', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
           { content: 'Faculty Mentor\n(Name & Contact No.)', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
           { content: 'Faculty Mentor\nAttendance', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
@@ -465,17 +545,17 @@ export const generateVectorAttendancePdf = (
         textColor: [15, 23, 42]
       },
       columnStyles: {
-        0: { cellWidth: 8 },   // Sr. No.
-        1: { cellWidth: 37 },  // Institution
-        2: { cellWidth: 26 },  // Mentor Name & Contact
-        3: { cellWidth: 32 },  // Mentor Attendance / Signature (32mm wide!)
+        0: { cellWidth: 16 },  // Team Code & Seq (e.g. TEAM 01 \n (#1))
+        1: { cellWidth: 35 },  // Institution
+        2: { cellWidth: 25 },  // Mentor Name & Contact
+        3: { cellWidth: 30 },  // Mentor Attendance / Signature (30mm wide)
         4: { cellWidth: 37 },  // Project Idea
-        5: { cellWidth: 26 },  // Theme
-        6: { cellWidth: 8 },   // S. No.
-        7: { cellWidth: 28 },  // Student Name
+        5: { cellWidth: 24 },  // Theme
+        6: { cellWidth: 7 },   // S. No.
+        7: { cellWidth: 26 },  // Student Name
         8: { cellWidth: 23 },  // Roll No
-        9: { cellWidth: 16 },  // Semester (16mm fits Semester on 1 line)
-        10: { cellWidth: 34 }  // Student Signature (34mm wide!)
+        9: { cellWidth: 15 },  // Semester
+        10: { cellWidth: 33 }  // Student Signature (33mm wide)
       }
     });
 

@@ -450,14 +450,18 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       <th
                         rowSpan={2}
                         className="p-1 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '2.5%' }}
+                        style={{ width: '6%' }}
                       >
-                        Sr. No.
+                        Team Code
+                        <br />
+                        <span className="text-[8px] font-normal lowercase tracking-normal opacity-90">
+                          (Seq. No.)
+                        </span>
                       </th>
                       <th
                         rowSpan={2}
                         className="p-1 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '13.5%' }}
+                        style={{ width: '12%' }}
                       >
                         Name of Institution
                         <br />
@@ -468,7 +472,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       <th
                         rowSpan={2}
                         className="p-1 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '9.5%' }}
+                        style={{ width: '9%' }}
                       >
                         Faculty Mentor
                         <br />
@@ -479,7 +483,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       <th
                         rowSpan={2}
                         className="p-1 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]"
-                        style={{ width: '12.5%' }}
+                        style={{ width: '12%' }}
                       >
                         Faculty Mentor
                         <br />
@@ -490,14 +494,14 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       <th
                         rowSpan={2}
                         className="p-1 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '13.5%' }}
+                        style={{ width: '13%' }}
                       >
                         Project Idea / Title of Innovation
                       </th>
                       <th
                         rowSpan={2}
                         className="p-1 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '9.5%' }}
+                        style={{ width: '9%' }}
                       >
                         Theme /
                         <br />
@@ -560,12 +564,19 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                               {/* RENDER TEAM DETAILS (ROW-SPANNED) ON FIRST STUDENT ROW */}
                               {isFirstStudent && (
                                 <>
-                                  {/* Sr. No. */}
+                                  {/* Team Code & Seq. No. */}
                                   <td
                                     rowSpan={studentCount}
-                                    className="p-1.5 text-center font-black text-slate-800 text-[11px] border border-[#cbd5e1] align-middle"
+                                    className="p-1 text-center border border-[#cbd5e1] align-middle"
                                   >
-                                    {team.globalSrNo}
+                                    <div className="inline-flex flex-col items-center justify-center">
+                                      <span className="px-2 py-0.5 rounded bg-[#0e3868] text-white font-mono font-black text-[10.5px] tracking-wider shadow-2xs whitespace-nowrap">
+                                        {team.teamCode || `TEAM ${String(team.globalSrNo).padStart(2, '0')}`}
+                                      </span>
+                                      <span className="text-[9px] text-slate-500 font-bold mt-1">
+                                        #{team.globalSrNo}
+                                      </span>
+                                    </div>
                                   </td>
 
                                   {/* Institution Name */}
@@ -603,6 +614,14 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                                     rowSpan={studentCount}
                                     className="p-1.5 text-center border border-[#cbd5e1] align-middle text-[10px]"
                                   >
+                                    <div className="flex items-center justify-center gap-1.5 mb-1">
+                                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-200 font-mono font-extrabold text-[9px]">
+                                        {team.teamCode || `TEAM ${String(team.globalSrNo).padStart(2, '0')}`}
+                                      </span>
+                                      <span className="text-[8.5px] font-mono text-slate-500 font-semibold">
+                                        ({team.submissionCode})
+                                      </span>
+                                    </div>
                                     <div className="font-bold text-slate-900 leading-snug uppercase">
                                       {team.projectTitle}
                                     </div>

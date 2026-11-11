@@ -526,7 +526,8 @@ export const generateVectorTeamScoreSheetPdf = (teamData = null, judgeName = '',
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(30, 41, 59);
-  const projTitle = teamData ? `${teamData.projectTitle} [${teamData.submissionCode}]` : '____________________________________________________';
+  const teamCodeBadge = teamData?.teamCode ? `[${teamData.teamCode}] ` : '';
+  const projTitle = teamData ? `${teamCodeBadge}${teamData.projectTitle} (${teamData.submissionCode})` : '____________________________________________________';
   doc.text(projTitle, 52, metaBoxY + 4.5);
 
   doc.setFont('helvetica', 'bold');
@@ -892,7 +893,7 @@ export const generateConsolidatedJuryMatrixPdf = (teamsList = [], filename = nul
 
   const tableRows = teamsList.map((team, idx) => [
     String(idx + 1),
-    team.submissionCode || `TEAM-${idx + 1}`,
+    team.teamCode || team.submissionCode || `TEAM ${String(idx + 1).padStart(2, '0')}`,
     team.projectTitle,
     team.instituteName,
     '', // Param 1 (out of 15)

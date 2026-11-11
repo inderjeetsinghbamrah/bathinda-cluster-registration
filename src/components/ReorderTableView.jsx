@@ -21,7 +21,9 @@ import {
   Award,
   Hash,
   ArrowLeft,
-  Pencil
+  Pencil,
+  Database,
+  Loader2
 } from 'lucide-react';
 import {
   formatAttendanceData,
@@ -30,14 +32,17 @@ import {
   clearCustomTeamOrder,
   moveTeamInList,
   exportAttendanceToExcel,
+  saveTeamOrderToDatabase,
   EVENT_DETAILS
 } from '../lib/attendanceUtils';
 
 export const ReorderTableView = ({
   submissions = [],
+  authToken = '',
   onOpenAttendance = null,
   onBack = null,
-  onEditSubmission = null
+  onEditSubmission = null,
+  onSubmissionsUpdate = null
 }) => {
   const [customKeys, setCustomKeys] = useState(() => loadCustomTeamOrder());
   const [orderedTeams, setOrderedTeams] = useState(() => {
@@ -50,6 +55,7 @@ export const ReorderTableView = ({
   const [lastActionMessage, setLastActionMessage] = useState('');
   const [editingRankKey, setEditingRankKey] = useState(null);
   const [tempRankValue, setTempRankValue] = useState('');
+  const [isSavingToDb, setIsSavingToDb] = useState(false);
 
   // Update when submissions load or change
   useEffect(() => {
@@ -62,18 +68,46 @@ export const ReorderTableView = ({
   // Flash message timeout
   useEffect(() => {
     if (lastActionMessage) {
-      const timer = setTimeout(() => setLastActionMessage(''), 3000);
+      const timer = setTimeout(() => setLastActionMessage(''), 4000);
       return () => clearTimeout(timer);
     }
   }, [lastActionMessage]);
 
-  // Save changes to customKeys state and localStorage
-  const commitOrder = (newTeams, actionDescription = 'Order updated') => {
-    const keys = newTeams.map((t) => t.teamKey);
+  // Save changes to state, localStorage, and Supabase database
+  const commitOrder = async (newTeams, actionDescription = 'Order updated') => {
+    const resequenced = newTeams.map((t, idx) => ({
+      ...t,
+      globalSrNo: idx + 1,
+      sequenceOrder: idx + 1,
+      teamCode: `TEAM ${String(idx + 1).padStart(2, '0')}`
+    }));
+
+    const keys = resequenced.map((t) => t.teamKey);
     setCustomKeys(keys);
     saveCustomTeamOrder(keys);
-    setOrderedTeams(newTeams);
-    setLastActionMessage(actionDescription);
+    setOrderedTeams(resequenced);
+    setLastActionMessage(`${actionDescription} • Saving to database...`);
+
+    setIsSavingToDb(true);
+    try {
+      const res = await saveTeamOrderToDatabase(resequenced, authToken);
+      if (res?.success) {
+        setLastActionMessage(
+          `${actionDescription} • Saved to Database (TEAM 01 - TEAM ${String(resequenced.length).padStart(2, '0')})`
+        );
+        if (onSubmissionsUpdate) {
+          onSubmissionsUpdate(resequenced);
+        }
+      } else {
+        setLastActionMessage(
+          `${actionDescription} • Saved locally (DB: ${res?.message || 'offline'})`
+        );
+      }
+    } catch (err) {
+      setLastActionMessage(`${actionDescription} • Saved locally`);
+    } finally {
+      setIsSavingToDb(false);
+    }
   };
 
   // Move a team from one position to another
@@ -166,8 +200,7 @@ export const ReorderTableView = ({
     clearCustomTeamOrder();
     setCustomKeys([]);
     const defaultList = formatAttendanceData(submissions, 'institute', []);
-    setOrderedTeams(defaultList);
-    setLastActionMessage('Reset order to default (Alphabetical by Institute)');
+    commitOrder(defaultList, 'Reset order to default (Alphabetical by Institute)');
   };
 
   // Filtered view
@@ -181,6 +214,7 @@ export const ReorderTableView = ({
         t.projectTitle.toLowerCase().includes(q) ||
         t.mentorName.toLowerCase().includes(q) ||
         t.submissionCode.toLowerCase().includes(q) ||
+        (t.teamCode && t.teamCode.toLowerCase().includes(q)) ||
         t.students.some(
           (s) =>
             s.studentName.toLowerCase().includes(q) ||
@@ -318,13 +352,33 @@ export const ReorderTableView = ({
               <Download className="w-3.5 h-3.5" />
               <span>CSV</span>
             </button>
+
+            {/* Save Order to Database */}
+            <button
+              type="button"
+              disabled={isSavingToDb}
+              onClick={() => commitOrder(orderedTeams, 'Manual save')}
+              className="px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-2xs transition cursor-pointer disabled:opacity-50"
+              title="Save current sequence & team codes to database"
+            >
+              {isSavingToDb ? (
+                <Loader2 className="w-4 h-4 animate-spin text-blue-200" />
+              ) : (
+                <Database className="w-4 h-4 text-blue-200" />
+              )}
+              <span>{isSavingToDb ? 'Saving...' : 'Save to DB'}</span>
+            </button>
           </div>
         </div>
 
         {/* Action Message Flash Banner */}
         {lastActionMessage && (
           <div className="mt-3 py-2 px-3.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-semibold flex items-center gap-2 animate-fadeIn">
-            <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+            {isSavingToDb ? (
+              <Loader2 className="w-4 h-4 text-indigo-600 animate-spin flex-shrink-0" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+            )}
             <span>{lastActionMessage}</span>
           </div>
         )}
@@ -391,7 +445,7 @@ export const ReorderTableView = ({
             </span>
             <span className="text-emerald-700 font-bold flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Auto-saved to Browser
+              Auto-saved to DB &amp; Browser
             </span>
           </div>
         </div>
@@ -436,6 +490,7 @@ export const ReorderTableView = ({
                 <th className="p-3 w-14 text-center">Handle</th>
                 <th className="p-3 w-28 text-center">Reorder</th>
                 <th className="p-3 w-16 text-center">Seq #</th>
+                <th className="p-3 w-28 text-center">Team Code</th>
                 <th className="p-3 w-24">Ack Code</th>
                 <th className="p-3">Institution Name</th>
                 <th className="p-3 w-24 text-center">Team #</th>
@@ -450,7 +505,7 @@ export const ReorderTableView = ({
             <tbody className="divide-y divide-slate-200 text-slate-800">
               {displayTeams.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="p-12 text-center text-slate-400 font-semibold text-sm">
+                  <td colSpan={12} className="p-12 text-center text-slate-400 font-semibold text-sm">
                     No project entries found matching your search.
                   </td>
                 </tr>
@@ -564,6 +619,13 @@ export const ReorderTableView = ({
                             {team.globalSrNo}
                           </button>
                         )}
+                      </td>
+
+                      {/* Assigned Team Code (TEAM 01, TEAM 02...) */}
+                      <td className="p-2.5 text-center whitespace-nowrap">
+                        <span className="px-2.5 py-1 rounded-lg bg-[#0e3868] text-white font-mono font-black text-xs tracking-wider shadow-2xs border border-blue-900 inline-block">
+                          {team.teamCode || `TEAM ${String(team.globalSrNo).padStart(2, '0')}`}
+                        </span>
                       </td>
 
                       {/* Ack Code */}
