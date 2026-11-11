@@ -344,60 +344,42 @@ export const generateVectorAttendancePdf = (
     doc.setLineWidth(0.8);
     doc.roundedRect(margin, margin, pageWidth - margin * 2, pageHeight - margin * 2, 3, 3, 'S');
 
-    // Header Left: Punjab Govt & Tech Ed Logos
+    // Header Left: Punjab Govt & Tech Ed Logos Only
     try {
-      doc.addImage(LOGO_PUNJAB_GOVT, 'JPEG', margin + 3, margin + 3, 14, 14);
-      doc.addImage(LOGO_TECH_ED, 'JPEG', margin + 19, margin + 4.5, 11, 11);
+      doc.addImage(LOGO_PUNJAB_GOVT, 'JPEG', margin + 3, margin + 2.5, 16, 16);
+      doc.addImage(LOGO_TECH_ED, 'JPEG', margin + 21, margin + 3.5, 14, 14);
     } catch (e) {
       console.warn('Failed to embed left logos in PDF:', e);
     }
 
-    // PSBTE Text
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(14, 56, 104);
-    doc.text(EVENT_DETAILS.boardName, margin + 32, margin + 8);
-    doc.setFontSize(6);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(60, 60, 60);
-    doc.text('Punjab State Board of Technical Education\n& Industrial Training Punjab', margin + 32, margin + 11.5);
-
     // Title Center
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(13);
+    doc.setFontSize(13.5);
     doc.setTextColor(14, 56, 104);
-    doc.text(EVENT_DETAILS.eventName, pageWidth / 2, margin + 7, { align: 'center' });
+    doc.text(EVENT_DETAILS.eventName, pageWidth / 2, margin + 6.5, { align: 'center' });
 
     // Center Pill Banner
     doc.setFillColor(14, 56, 104);
-    doc.roundedRect(pageWidth / 2 - 45, margin + 9.5, 90, 5.5, 2.75, 2.75, 'F');
+    doc.roundedRect(pageWidth / 2 - 50, margin + 9, 100, 5.5, 2.75, 2.75, 'F');
     doc.setFontSize(8.5);
     doc.setTextColor(255, 255, 255);
-    doc.text(EVENT_DETAILS.subtitle, pageWidth / 2, margin + 13.5, { align: 'center' });
+    doc.text(EVENT_DETAILS.subtitle, pageWidth / 2, margin + 13, { align: 'center' });
 
     // Center Meta Bar
     doc.setFillColor(241, 245, 249);
     doc.setDrawColor(203, 213, 225);
     doc.setLineWidth(0.3);
-    doc.roundedRect(pageWidth / 2 - 68, margin + 16.5, 136, 4.5, 2.25, 2.25, 'FD');
-    doc.setFontSize(7);
+    doc.roundedRect(pageWidth / 2 - 75, margin + 16, 150, 4.5, 2.25, 2.25, 'FD');
+    doc.setFontSize(7.2);
     doc.setTextColor(30, 41, 59);
-    doc.text(`Cluster: Bathinda   |   Venue / Host: ${EVENT_DETAILS.hostInstitute}   |   Date: ${EVENT_DETAILS.eventDate}`, pageWidth / 2, margin + 19.8, { align: 'center' });
+    doc.text(`Cluster: Bathinda   |   Venue / Host: ${EVENT_DETAILS.hostInstitute}   |   Date: ${EVENT_DETAILS.eventDate}`, pageWidth / 2, margin + 19.3, { align: 'center' });
 
-    // Header Right: GPC Bathinda Logo
+    // Header Right: GPC Bathinda Logo Only
     try {
-      doc.addImage(LOGO_GPC_BATHINDA, 'JPEG', pageWidth - margin - 17, margin + 3, 14, 14);
+      doc.addImage(LOGO_GPC_BATHINDA, 'JPEG', pageWidth - margin - 19, margin + 2.5, 16, 16);
     } catch (e) {
       console.warn('Failed to embed right logo in PDF:', e);
     }
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(14, 56, 104);
-    doc.text(EVENT_DETAILS.hostInstitute, pageWidth - margin - 19, margin + 9, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.5);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Host Institute & Nodal Center', pageWidth - margin - 19, margin + 12.5, { align: 'right' });
 
     // Dynamically adjust cell padding, row height and font size based on page density
     const totalStudentsOnPage = pageTeams.reduce((acc, t) => acc + (t.students?.length || 1), 0);

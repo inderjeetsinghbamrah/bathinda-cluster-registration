@@ -291,43 +291,35 @@ export const JudgesPanel = ({ onBack = null }) => {
           backgroundColor: '#ffffff'
         }}
       >
-        {/* HEADER SECTION MATCHING AttendanceSheet.jsx */}
+        {/* HEADER SECTION: LOGOS ONLY (Left: Punjab Govt + Tech Ed, Right: GPC Bathinda) */}
         <div className="pb-2.5 border-b-2 border-[#0e3868]">
-          <div className="flex items-center justify-between" style={{ gap: '10px' }}>
-            {/* LEFT: Punjab Govt & Tech Ed & Board */}
-            <div style={{ width: '220px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="flex items-center justify-between" style={{ gap: '14px' }}>
+            {/* LEFT: Punjab Govt & Tech Ed Logos Only */}
+            <div className="flex items-center gap-3 flex-shrink-0" style={{ minWidth: '120px' }}>
               <img
                 src={LOGO_PUNJAB_GOVT}
                 alt="Govt of Punjab"
-                style={{ height: '48px', width: 'auto', maxHeight: '48px', objectFit: 'contain' }}
+                style={{ height: '52px', width: 'auto', maxHeight: '52px', objectFit: 'contain' }}
               />
               <img
                 src={LOGO_TECH_ED}
-                alt="Tech Ed"
-                style={{ height: '38px', width: '38px', maxHeight: '38px', objectFit: 'contain' }}
-                className="rounded-md"
+                alt="Tech Ed Punjab"
+                style={{ height: '44px', width: '44px', maxHeight: '44px', objectFit: 'contain' }}
+                className="rounded-lg"
               />
-              <div className="flex flex-col">
-                <span style={{ fontSize: '14px', fontWeight: 900, color: '#0e3868', lineHeight: 1, letterSpacing: '-0.3px' }}>
-                  {EVENT_DETAILS.boardName}
-                </span>
-                <span style={{ fontSize: '7.5px', fontWeight: 600, color: '#334155', lineHeight: 1.15, marginTop: '2px' }}>
-                  {EVENT_DETAILS.boardFullName}
-                </span>
-              </div>
             </div>
 
             {/* CENTER: Innovation Bulb + Challenge Title + Pill Banner + Meta Bar */}
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
               <div className="flex items-center justify-center gap-2">
                 <InnovationBulbIcon />
-                <h1 style={{ fontSize: '17px', fontWeight: 900, color: '#0e3868', lineHeight: 1.1, letterSpacing: '-0.2px' }}>
+                <h1 style={{ fontSize: '18px', fontWeight: 900, color: '#0e3868', lineHeight: 1.1, letterSpacing: '-0.2px' }}>
                   {EVENT_DETAILS.eventName}
                 </h1>
               </div>
 
               {/* Dark Blue Pill Banner */}
-              <div style={{ margin: '4px 0', backgroundColor: '#0e3868', color: '#ffffff', fontWeight: 800, fontSize: '11px', letterSpacing: '0.3px', padding: '2px 18px', borderRadius: '9999px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              <div style={{ margin: '4px 0', backgroundColor: '#0e3868', color: '#ffffff', fontWeight: 800, fontSize: '11px', letterSpacing: '0.3px', padding: '2.5px 20px', borderRadius: '9999px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                 {bannerTitle}
               </div>
 
@@ -347,20 +339,12 @@ export const JudgesPanel = ({ onBack = null }) => {
               </div>
             </div>
 
-            {/* RIGHT: Host Institute Logo & Official Tag */}
-            <div style={{ width: '220px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', textAlign: 'right' }}>
-              <div className="flex flex-col items-end">
-                <span style={{ fontSize: '10.5px', fontWeight: 900, color: '#0e3868', lineHeight: 1.2, maxWidth: '170px' }}>
-                  {EVENT_DETAILS.hostInstitute}
-                </span>
-                <span style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: '2px' }}>
-                  Host Institute &amp; Nodal Center
-                </span>
-              </div>
+            {/* RIGHT: Host Institute Logo Only */}
+            <div className="flex items-center justify-end flex-shrink-0" style={{ minWidth: '120px' }}>
               <img
                 src={LOGO_GPC_BATHINDA}
-                alt="GPC Bathinda"
-                style={{ height: '48px', width: '48px', maxHeight: '48px', objectFit: 'contain' }}
+                alt="Government Polytechnic College Bathinda"
+                style={{ height: '52px', width: '52px', maxHeight: '52px', objectFit: 'contain' }}
                 className="rounded-full"
               />
             </div>

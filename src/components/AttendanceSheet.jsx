@@ -381,30 +381,22 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                 backgroundColor: '#ffffff'
               }}
             >
-              {/* HEADER SECTION */}
+              {/* HEADER SECTION: LOGOS ONLY (Left: Punjab Govt + Tech Ed, Right: GPC Bathinda) */}
               <div className="pb-3 border-b-2 border-[#0e3868]">
-                <div className="flex items-center justify-between" style={{ gap: '12px' }}>
-                  {/* LEFT: Punjab Govt & Tech Ed & Board */}
-                  <div style={{ width: '255px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="flex items-center justify-between" style={{ gap: '14px' }}>
+                  {/* LEFT: Punjab Govt & Tech Ed Logos Only */}
+                  <div className="flex items-center gap-3.5 flex-shrink-0" style={{ minWidth: '120px' }}>
                     <img
                       src={LOGO_PUNJAB_GOVT}
                       alt="Govt of Punjab"
-                      style={{ height: '52px', width: 'auto', maxHeight: '52px', objectFit: 'contain' }}
+                      style={{ height: '54px', width: 'auto', maxHeight: '54px', objectFit: 'contain' }}
                     />
                     <img
                       src={LOGO_TECH_ED}
-                      alt="Tech Ed"
-                      style={{ height: '42px', width: '42px', maxHeight: '42px', objectFit: 'contain' }}
-                      className="rounded-md"
+                      alt="Tech Ed Punjab"
+                      style={{ height: '46px', width: '46px', maxHeight: '46px', objectFit: 'contain' }}
+                      className="rounded-lg"
                     />
-                    <div className="flex flex-col">
-                      <span style={{ fontSize: '15px', fontWeight: 900, color: '#0e3868', lineHeight: 1, letterSpacing: '-0.3px' }}>
-                        {EVENT_DETAILS.boardName}
-                      </span>
-                      <span style={{ fontSize: '8px', fontWeight: 600, color: '#334155', lineHeight: 1.15, marginTop: '3px' }}>
-                        {EVENT_DETAILS.boardFullName}
-                      </span>
-                    </div>
                   </div>
 
                   {/* CENTER: Innovation Bulb + Challenge Title + Pill Banner + Meta Bar */}
@@ -437,20 +429,12 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                     </div>
                   </div>
 
-                  {/* RIGHT: Host Institute Logo & Official Tag */}
-                  <div style={{ width: '255px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', textAlign: 'right' }}>
-                    <div className="flex flex-col items-end">
-                      <span style={{ fontSize: '11px', fontWeight: 900, color: '#0e3868', lineHeight: 1.2, maxWidth: '180px' }}>
-                        {EVENT_DETAILS.hostInstitute}
-                      </span>
-                      <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: '2px' }}>
-                        Host Institute &amp; Nodal Center
-                      </span>
-                    </div>
+                  {/* RIGHT: Host Institute Logo Only */}
+                  <div className="flex items-center justify-end flex-shrink-0" style={{ minWidth: '120px' }}>
                     <img
                       src={LOGO_GPC_BATHINDA}
-                      alt="GPC Bathinda"
-                      style={{ height: '52px', width: '52px', maxHeight: '52px', objectFit: 'contain' }}
+                      alt="Government Polytechnic College Bathinda"
+                      style={{ height: '54px', width: '54px', maxHeight: '54px', objectFit: 'contain' }}
                       className="rounded-full"
                     />
                   </div>
