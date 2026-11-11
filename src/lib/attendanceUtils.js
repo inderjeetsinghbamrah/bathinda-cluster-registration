@@ -41,28 +41,55 @@ export const getThemeDomain = (theme, other) => {
   };
 };
 
+export const STORAGE_KEY_TEAM_ORDER = 'cluster_team_custom_order';
+
+export const loadCustomTeamOrder = () => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_TEAM_ORDER);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+export const saveCustomTeamOrder = (keys = []) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY_TEAM_ORDER, JSON.stringify(keys));
+  } catch (e) {
+    console.error('Failed to save custom team order to localStorage:', e);
+  }
+};
+
+export const clearCustomTeamOrder = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(STORAGE_KEY_TEAM_ORDER);
+  } catch (e) {}
+};
+
 /**
  * Transforms raw Supabase submissions into flattened, normalized teams and students
- * suitable for the official Attendance Sheet layout.
+ * suitable for the official Attendance Sheet layout and Reorderable Table.
  */
-export const formatAttendanceData = (submissions = [], sortBy = 'institute') => {
+export const formatAttendanceData = (
+  submissions = [],
+  sortBy = 'custom',
+  customOrderKeys = []
+) => {
   if (!Array.isArray(submissions)) return [];
 
-  // Clone submissions
-  let subs = [...submissions];
-
-  if (sortBy === 'institute') {
-    subs.sort((a, b) => (a.institute_name || '').localeCompare(b.institute_name || ''));
-  } else if (sortBy === 'created_at') {
-    subs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-  } else if (sortBy === 'code') {
-    subs.sort((a, b) => (a.submission_code || '').localeCompare(b.submission_code || ''));
-  }
+  const effectiveCustomKeys =
+    Array.isArray(customOrderKeys) && customOrderKeys.length > 0
+      ? customOrderKeys
+      : loadCustomTeamOrder();
 
   const formattedTeams = [];
-  let globalSrNo = 1;
 
-  subs.forEach((sub) => {
+  submissions.forEach((sub) => {
     const rawTeams = sub.raw_payload?.teams || [];
     const teams = sub.competition_teams || [];
 
@@ -100,10 +127,13 @@ export const formatAttendanceData = (submissions = [], sortBy = 'institute') => 
         };
       });
 
+      const teamKey = `${sub.id}_${t.team_number || 1}`;
+
       formattedTeams.push({
-        globalSrNo: globalSrNo++,
+        teamKey,
         submissionId: sub.id,
         submissionCode: sub.submission_code,
+        createdAt: sub.created_at,
         instituteName: (sub.institute_name || '').trim(),
         principalName: (sub.principal_name || '').trim(),
         principalContact: (sub.principal_contact || '').trim(),
@@ -117,7 +147,59 @@ export const formatAttendanceData = (submissions = [], sortBy = 'institute') => 
     });
   });
 
-  return formattedTeams;
+  // Sort according to requested mode
+  if (sortBy === 'custom' && effectiveCustomKeys.length > 0) {
+    const keyMap = new Map();
+    effectiveCustomKeys.forEach((k, idx) => keyMap.set(k, idx));
+    formattedTeams.sort((a, b) => {
+      const idxA = keyMap.has(a.teamKey) ? keyMap.get(a.teamKey) : 9999;
+      const idxB = keyMap.has(b.teamKey) ? keyMap.get(b.teamKey) : 9999;
+      if (idxA !== idxB) return idxA - idxB;
+      return a.instituteName.localeCompare(b.instituteName);
+    });
+  } else if (sortBy === 'host_first') {
+    formattedTeams.sort((a, b) => {
+      const isHostA = a.instituteName.toLowerCase().includes('government') && a.instituteName.toLowerCase().includes('bathinda');
+      const isHostB = b.instituteName.toLowerCase().includes('government') && b.instituteName.toLowerCase().includes('bathinda');
+      if (isHostA && !isHostB) return -1;
+      if (!isHostA && isHostB) return 1;
+      return a.instituteName.localeCompare(b.instituteName);
+    });
+  } else if (sortBy === 'theme') {
+    formattedTeams.sort((a, b) => {
+      const cmp = a.theme.code.localeCompare(b.theme.code);
+      if (cmp !== 0) return cmp;
+      return a.instituteName.localeCompare(b.instituteName);
+    });
+  } else if (sortBy === 'institute') {
+    formattedTeams.sort((a, b) => a.instituteName.localeCompare(b.instituteName));
+  } else if (sortBy === 'created_at') {
+    formattedTeams.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  } else if (sortBy === 'code') {
+    formattedTeams.sort((a, b) => a.submissionCode.localeCompare(b.submissionCode));
+  }
+
+  // Renumber globalSrNo sequentially
+  return formattedTeams.map((t, idx) => ({
+    ...t,
+    globalSrNo: idx + 1
+  }));
+};
+
+/**
+ * Reorders an array moving item from fromIndex to toIndex
+ */
+export const moveTeamInList = (teams = [], fromIndex, toIndex) => {
+  if (!Array.isArray(teams) || fromIndex < 0 || toIndex < 0 || fromIndex >= teams.length || toIndex >= teams.length) {
+    return teams;
+  }
+  const updated = [...teams];
+  const [moved] = updated.splice(fromIndex, 1);
+  updated.splice(toIndex, 0, moved);
+  return updated.map((t, idx) => ({
+    ...t,
+    globalSrNo: idx + 1
+  }));
 };
 
 /**

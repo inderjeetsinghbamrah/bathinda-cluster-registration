@@ -25,10 +25,12 @@ import {
   ChevronDown,
   ChevronUp,
   ClipboardCheck,
-  FileText
+  FileText,
+  ArrowUpDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AttendanceSheet } from './AttendanceSheet';
+import { ReorderTableView } from './ReorderTableView';
 
 export const AdminPortal = () => {
   const [token, setToken] = useState(() => localStorage.getItem('cluster_admin_token') || '');
@@ -640,7 +642,7 @@ export const AdminPortal = () => {
         </div>
 
         {/* Overview Stats Cards - Only visible in institutes/roster views */}
-        {viewMode !== 'attendance' && (
+        {viewMode !== 'attendance' && viewMode !== 'reorder' && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 no-print">
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
@@ -675,7 +677,7 @@ export const AdminPortal = () => {
         )}
 
         {/* Toolbar: Search, View Switcher & Action Buttons - Only visible in institutes/roster views */}
-        {viewMode !== 'attendance' && (
+        {viewMode !== 'attendance' && viewMode !== 'reorder' && (
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs mb-5 flex flex-wrap items-center justify-between gap-3 no-print">
             <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
               {/* Search box */}
@@ -703,12 +705,24 @@ export const AdminPortal = () => {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setViewMode('reorder')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                    viewMode === 'reorder'
+                      ? 'bg-indigo-900 text-white shadow-2xs'
+                      : 'text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50/60'
+                  }`}
+                >
+                  <ArrowUpDown className="w-3.5 h-3.5" />
+                  <span>Reorder Projects Table ({totalTeams})</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setViewMode('roster')}
                   className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
                     viewMode === 'roster' ? 'bg-white text-blue-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Joined Student Roster ({joinedRecords.length})
+                  Joined Roster ({joinedRecords.length})
                 </button>
                 <button
                   type="button"
@@ -727,6 +741,17 @@ export const AdminPortal = () => {
 
             {/* Action buttons & Export */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Reorder Table Shortcut Button */}
+              <button
+                type="button"
+                onClick={() => setViewMode('reorder')}
+                className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 active:scale-95 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
+                title="Open Reorderable Projects Table"
+              >
+                <ArrowUpDown className="w-4 h-4 text-indigo-600" />
+                <span>Reorder Table</span>
+              </button>
+
               {/* Direct Attendance Sheet PDF Button */}
               <button
                 type="button"
@@ -792,10 +817,17 @@ export const AdminPortal = () => {
           </div>
         )}
 
-        {/* VIEW MODES: ATTENDANCE SHEET, INSTITUTES GROUPED VIEW, OR MASTER ROSTER */}
+        {/* VIEW MODES: ATTENDANCE SHEET, REORDER TABLE, INSTITUTES GROUPED VIEW, OR MASTER ROSTER */}
         {viewMode === 'attendance' ? (
           <AttendanceSheet
             submissions={submissions}
+            onBack={() => setViewMode('institutes')}
+            onOpenReorder={() => setViewMode('reorder')}
+          />
+        ) : viewMode === 'reorder' ? (
+          <ReorderTableView
+            submissions={submissions}
+            onOpenAttendance={() => setViewMode('attendance')}
             onBack={() => setViewMode('institutes')}
           />
         ) : viewMode === 'institutes' ? (
@@ -884,15 +916,26 @@ export const AdminPortal = () => {
                       </div>
 
                       <div className="flex items-center gap-2">
+                        {/* Reorder Table Shortcut */}
+                        <button
+                          type="button"
+                          onClick={() => setViewMode('reorder')}
+                          className="px-2.5 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer no-print"
+                          title="Open Reorderable Projects Table"
+                        >
+                          <ArrowUpDown className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>Reorder</span>
+                        </button>
+
                         {/* Attendance Sheet Button */}
                         <button
                           type="button"
                           onClick={() => setViewMode('attendance')}
-                          className="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer no-print"
+                          className="px-2.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer no-print"
                           title="Open official Attendance Sheet"
                         >
                           <ClipboardCheck className="w-3.5 h-3.5 text-blue-600" />
-                          <span>Attendance Sheet</span>
+                          <span>Attendance</span>
                         </button>
 
                         {/* Delete Authority Button */}

@@ -15,7 +15,8 @@ import {
   Eye,
   SlidersHorizontal,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ArrowUpDown
 } from 'lucide-react';
 import {
   EVENT_DETAILS,
@@ -45,11 +46,11 @@ const InnovationBulbIcon = () => (
   </svg>
 );
 
-export const AttendanceSheet = ({ submissions = [], onBack = null }) => {
+export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder = null }) => {
   const [selectedInstitute, setSelectedInstitute] = useState('All');
   const [selectedTheme, setSelectedTheme] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('institute');
+  const [sortBy, setSortBy] = useState('custom');
   const [studentsPerPage, setStudentsPerPage] = useState(11);
   const [viewMode, setViewMode] = useState('paginated'); // 'paginated' or 'continuous'
   const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -170,6 +171,19 @@ export const AttendanceSheet = ({ submissions = [], onBack = null }) => {
 
           {/* Quick Action Buttons */}
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Reorder Table Shortcut Button */}
+            {onOpenReorder && (
+              <button
+                type="button"
+                onClick={onOpenReorder}
+                className="px-3.5 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 active:scale-95 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
+                title="Open Reorderable Table View to adjust presentation and print sequence"
+              >
+                <ArrowUpDown className="w-4 h-4 text-indigo-600" />
+                <span>Reorder Sequence</span>
+              </button>
+            )}
+
             {/* Download PDF Button */}
             <button
               type="button"
@@ -282,6 +296,9 @@ export const AttendanceSheet = ({ submissions = [], onBack = null }) => {
               onChange={(e) => setSortBy(e.target.value)}
               className="w-full py-2 px-2.5 rounded-xl border border-slate-300 bg-slate-50 font-medium text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
             >
+              <option value="custom">Custom Sequence (from Reorder Table)</option>
+              <option value="host_first">Host College First (GPC Bathinda)</option>
+              <option value="theme">Group by Theme Domain (D-01 to D-08)</option>
               <option value="institute">Alphabetical (By Institute)</option>
               <option value="created_at">Registration Order (Early First)</option>
               <option value="code">Acknowledgement Code</option>
