@@ -462,47 +462,58 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                 <table className="w-full border-collapse text-left" style={{ tableLayout: 'fixed' }}>
                   <thead>
                     {/* Header Row 1 */}
-                    <tr className="bg-[#0e3868] text-white text-[10.5px] font-bold uppercase tracking-wider">
+                    <tr className="bg-[#0e3868] text-white text-[9.5px] font-bold uppercase tracking-wider">
                       <th
                         rowSpan={2}
                         className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '3.5%' }}
+                        style={{ width: '3%' }}
                       >
                         Sr. No.
                       </th>
                       <th
                         rowSpan={2}
                         className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '15.5%' }}
+                        style={{ width: '15%' }}
                       >
                         Name of Institution
                         <br />
-                        <span className="text-[9px] font-normal lowercase tracking-normal opacity-90">
+                        <span className="text-[8.5px] font-normal lowercase tracking-normal opacity-90">
                           (College / Polytechnic)
                         </span>
                       </th>
                       <th
                         rowSpan={2}
                         className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '12.5%' }}
+                        style={{ width: '11.5%' }}
                       >
                         Faculty Mentor
                         <br />
-                        <span className="text-[9px] font-normal lowercase tracking-normal opacity-90">
+                        <span className="text-[8.5px] font-normal lowercase tracking-normal opacity-90">
                           (Name &amp; Contact No.)
                         </span>
                       </th>
                       <th
                         rowSpan={2}
+                        className="p-1 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]"
+                        style={{ width: '6.5%' }}
+                      >
+                        Faculty Mentor
+                        <br />
+                        <span className="text-[8.5px] font-normal lowercase tracking-normal opacity-90">
+                          Attendance (Sign)
+                        </span>
+                      </th>
+                      <th
+                        rowSpan={2}
                         className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '16%' }}
+                        style={{ width: '15%' }}
                       >
                         Project Idea / Title of Innovation
                       </th>
                       <th
                         rowSpan={2}
                         className="p-1.5 text-center border border-[#94a3b8] align-middle"
-                        style={{ width: '13%' }}
+                        style={{ width: '12%' }}
                       >
                         Theme /
                         <br />
@@ -511,21 +522,21 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                       <th
                         colSpan={5}
                         className="p-1.5 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]"
-                        style={{ width: '39.5%' }}
+                        style={{ width: '37%' }}
                       >
                         Student Details
                       </th>
                     </tr>
 
                     {/* Sub-Header Row 2 for Student Details */}
-                    <tr className="bg-[#0f3460] text-white text-[10px] font-bold text-center">
+                    <tr className="bg-[#0f3460] text-white text-[9px] font-bold text-center">
                       <th className="p-1 border border-[#94a3b8]" style={{ width: '3%' }}>
                         S. No.
                       </th>
-                      <th className="p-1 border border-[#94a3b8]" style={{ width: '13%' }}>
+                      <th className="p-1 border border-[#94a3b8]" style={{ width: '12%' }}>
                         Student Name
                       </th>
-                      <th className="p-1 border border-[#94a3b8]" style={{ width: '13%' }}>
+                      <th className="p-1 border border-[#94a3b8]" style={{ width: '11.5%' }}>
                         Roll No.
                       </th>
                       <th className="p-1 border border-[#94a3b8]" style={{ width: '4.5%' }}>
@@ -541,7 +552,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                     {pageTeams.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={10}
+                          colSpan={11}
                           className="p-8 text-center text-slate-400 font-semibold text-xs border border-[#cbd5e1]"
                         >
                           No project entries found for current filter.
@@ -568,7 +579,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                                   {/* Sr. No. */}
                                   <td
                                     rowSpan={studentCount}
-                                    className="p-2 text-center font-black text-slate-800 text-[12px] border border-[#cbd5e1] align-middle"
+                                    className="p-1.5 text-center font-black text-slate-800 text-[11px] border border-[#cbd5e1] align-middle"
                                   >
                                     {team.globalSrNo}
                                   </td>
@@ -576,28 +587,37 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                                   {/* Institution Name */}
                                   <td
                                     rowSpan={studentCount}
-                                    className="p-2 text-center font-black text-slate-900 text-[11px] leading-snug border border-[#cbd5e1] align-middle"
+                                    className="p-1.5 text-center font-bold text-slate-900 text-[10px] leading-snug border border-[#cbd5e1] align-middle"
                                   >
-                                    <div className="font-extrabold">{team.instituteName}</div>
+                                    <div>{team.instituteName}</div>
                                   </td>
 
                                   {/* Faculty Mentor */}
                                   <td
                                     rowSpan={studentCount}
-                                    className="p-2 text-center border border-[#cbd5e1] align-middle text-[11px]"
+                                    className="p-1.5 text-center border border-[#cbd5e1] align-middle text-[10px]"
                                   >
                                     <div className="font-bold text-slate-900 leading-tight">
                                       {team.mentorName}
                                     </div>
-                                    <div className="text-[10px] text-slate-600 font-mono mt-0.5 font-semibold">
+                                    <div className="text-[9px] text-slate-600 font-mono mt-0.5 font-semibold">
                                       ({team.mentorContact})
                                     </div>
+                                  </td>
+
+                                  {/* Faculty Mentor Attendance / Signature Box */}
+                                  <td
+                                    rowSpan={studentCount}
+                                    className="p-1 border border-[#cbd5e1] align-middle bg-white"
+                                    style={{ minHeight: '34px' }}
+                                  >
+                                    <div className="w-full h-full min-h-[30px]"></div>
                                   </td>
 
                                   {/* Project Title */}
                                   <td
                                     rowSpan={studentCount}
-                                    className="p-2 text-center border border-[#cbd5e1] align-middle text-[11px]"
+                                    className="p-1.5 text-center border border-[#cbd5e1] align-middle text-[10px]"
                                   >
                                     <div className="font-bold text-slate-900 leading-snug">
                                       {team.projectTitle}
@@ -607,9 +627,9 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                                   {/* Theme Domain Code + Name */}
                                   <td
                                     rowSpan={studentCount}
-                                    className="p-2 text-center border border-[#cbd5e1] align-middle text-[10px]"
+                                    className="p-1.5 text-center border border-[#cbd5e1] align-middle text-[9.5px]"
                                   >
-                                    <span className="inline-block px-2.5 py-0.5 rounded-full font-black bg-blue-100 text-blue-800 border border-blue-300 shadow-2xs mb-1 text-[10px]">
+                                    <span className="inline-block px-2 py-0.5 rounded-full font-black bg-blue-100 text-blue-800 border border-blue-300 shadow-2xs mb-0.5 text-[9px]">
                                       {team.theme.code}
                                     </span>
                                     <div className="font-bold text-slate-800 leading-tight">
@@ -621,24 +641,24 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
 
                               {/* STUDENT DETAILS (INDIVIDUAL ROW) */}
                               {/* S. No. */}
-                              <td className="p-1 text-center font-semibold text-slate-700 text-[10px] border border-[#cbd5e1] align-middle">
+                              <td className="p-1 text-center font-semibold text-slate-700 text-[9.5px] border border-[#cbd5e1] align-middle">
                                 {st.studentOrder}
                               </td>
 
                               {/* Student Name */}
                               <td className="p-1 text-left border border-[#cbd5e1] align-middle">
-                                <span className="font-extrabold text-slate-900 text-[10.5px] block leading-tight">
+                                <span className="font-extrabold text-slate-900 text-[10px] block leading-tight">
                                   {st.studentName}
                                 </span>
                               </td>
 
                               {/* Roll No */}
-                              <td className="roll-no-cell p-1 px-1.5 text-center font-mono font-bold text-slate-800 text-[10px] border border-[#cbd5e1] align-middle whitespace-nowrap overflow-visible">
+                              <td className="roll-no-cell p-1 px-1 text-center font-mono font-bold text-slate-800 text-[9.5px] border border-[#cbd5e1] align-middle whitespace-nowrap overflow-visible">
                                 {st.registrationNo}
                               </td>
 
                               {/* Semester */}
-                              <td className="p-1 text-center font-semibold text-slate-800 text-[10px] border border-[#cbd5e1] align-middle whitespace-nowrap">
+                              <td className="p-1 text-center font-semibold text-slate-800 text-[9.5px] border border-[#cbd5e1] align-middle whitespace-nowrap">
                                 {st.semester}
                               </td>
 
@@ -665,10 +685,10 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                   <div className="text-center w-64">
                     <div className="h-10 border-b border-dashed border-slate-400"></div>
                     <span className="font-bold text-[11px] text-slate-900 block mt-1.5">
-                      Faculty Mentor
+                      Faculty Mentor Signature
                     </span>
-                    <span className="text-[9.5px] text-slate-500 block leading-tight mt-0.5">
-                      (Accompanying Official / Mentor)
+                    <span className="text-[9.5px] text-slate-600 font-medium block leading-tight mt-0.5">
+                      Bathinda Cluster
                     </span>
                   </div>
 

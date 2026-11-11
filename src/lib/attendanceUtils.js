@@ -252,6 +252,7 @@ export const exportAttendanceToExcel = (teams = [], filename = '') => {
         'Sr. No.': t.globalSrNo,
         'Name of Institution': t.instituteName,
         'Faculty Mentor': `${t.mentorName} (${t.mentorContact})`,
+        'Faculty Mentor Attendance': '', // Blank for physical signature
         'Project Idea / Title of Innovation': t.projectTitle,
         'Thematic Domain Code': t.theme.code,
         'Theme': t.theme.name,
@@ -273,6 +274,7 @@ export const exportAttendanceToExcel = (teams = [], filename = '') => {
     { wch: 8 },  // Sr. No.
     { wch: 35 }, // Institute
     { wch: 25 }, // Mentor
+    { wch: 18 }, // Mentor Attendance
     { wch: 35 }, // Project
     { wch: 10 }, // Code
     { wch: 28 }, // Theme
@@ -382,13 +384,13 @@ export const generateVectorAttendancePdf = (
 
     // Dynamically adjust cell padding, row height and font size based on page density
     const totalStudentsOnPage = pageTeams.reduce((acc, t) => acc + (t.students?.length || 1), 0);
-    const rowMinHeight = totalStudentsOnPage <= 10 ? 11 : totalStudentsOnPage <= 12 ? 9.8 : 8.6;
+    const rowMinHeight = totalStudentsOnPage <= 10 ? 10.5 : totalStudentsOnPage <= 12 ? 9.5 : 8.5;
     const cellPad = totalStudentsOnPage <= 10
-      ? { top: 2.2, bottom: 2.2, left: 1.5, right: 1.5 }
+      ? { top: 1.8, bottom: 1.8, left: 1.2, right: 1.2 }
       : totalStudentsOnPage <= 12
-      ? { top: 1.8, bottom: 1.8, left: 1.5, right: 1.5 }
-      : { top: 1.4, bottom: 1.4, left: 1.5, right: 1.5 };
-    const fontSize = totalStudentsOnPage <= 10 ? 8 : totalStudentsOnPage <= 12 ? 7.8 : 7.5;
+      ? { top: 1.5, bottom: 1.5, left: 1.2, right: 1.2 }
+      : { top: 1.2, bottom: 1.2, left: 1.0, right: 1.0 };
+    const fontSize = totalStudentsOnPage <= 10 ? 7.3 : totalStudentsOnPage <= 12 ? 7.0 : 6.8;
 
     // Table Body with proper rowSpan
     const tableBody = [];
@@ -405,6 +407,7 @@ export const generateVectorAttendancePdf = (
             { content: String(team.globalSrNo), rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
             { content: team.instituteName, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
             { content: `${team.mentorName}\n(${team.mentorContact})`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
+            { content: '', rowSpan: studentCount, styles: { minCellHeight: rowMinHeight, fillColor: [255, 255, 255] } },
             { content: team.projectTitle, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
             { content: `[${team.theme.code}]\n${team.theme.name}`, rowSpan: studentCount, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } }
           );
@@ -432,6 +435,7 @@ export const generateVectorAttendancePdf = (
           { content: 'Sr.\nNo.', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
           { content: 'Name of Institution\n(College / Polytechnic)', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
           { content: 'Faculty Mentor\n(Name & Contact No.)', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+          { content: 'Faculty Mentor\nAttendance', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
           { content: 'Project Idea / Title of Innovation', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
           { content: 'Theme /\nThematic Domain', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
           { content: 'Student Details', colSpan: 5, styles: { halign: 'center' } }
@@ -449,7 +453,7 @@ export const generateVectorAttendancePdf = (
       headStyles: {
         fillColor: [14, 56, 104],
         textColor: [255, 255, 255],
-        fontSize: 7.5,
+        fontSize: 7.0,
         fontStyle: 'bold',
         lineWidth: 0.15,
         lineColor: [148, 163, 184]
@@ -462,16 +466,17 @@ export const generateVectorAttendancePdf = (
         textColor: [15, 23, 42]
       },
       columnStyles: {
-        0: { cellWidth: 9 },   // Sr. No.
-        1: { cellWidth: 44 },  // Institution
-        2: { cellWidth: 35 },  // Mentor
-        3: { cellWidth: 46 },  // Project
-        4: { cellWidth: 36 },  // Theme
-        5: { cellWidth: 9 },   // S. No.
-        6: { cellWidth: 33 },  // Student Name
-        7: { cellWidth: 26 },  // Roll No
-        8: { cellWidth: 18 },  // Semester
-        9: { cellWidth: 19 }   // Signature
+        0: { cellWidth: 8 },   // Sr. No.
+        1: { cellWidth: 39 },  // Institution
+        2: { cellWidth: 31 },  // Mentor Name & Contact
+        3: { cellWidth: 18 },  // Mentor Attendance / Signature
+        4: { cellWidth: 42 },  // Project Idea
+        5: { cellWidth: 33 },  // Theme
+        6: { cellWidth: 8 },   // S. No.
+        7: { cellWidth: 32 },  // Student Name
+        8: { cellWidth: 26 },  // Roll No
+        9: { cellWidth: 18 },  // Semester
+        10: { cellWidth: 20 }  // Student Signature
       }
     });
 
@@ -492,7 +497,7 @@ export const generateVectorAttendancePdf = (
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.8);
     doc.setTextColor(15, 23, 42);
-    doc.text('Faculty Mentor', leftX, footerY + 3.8, { align: 'center' });
+    doc.text('Faculty Mentor Signature', leftX, footerY + 3.8, { align: 'center' });
     doc.text('Nodal Officer', centerX, footerY + 3.8, { align: 'center' });
     doc.text('Principal', rightX, footerY + 3.8, { align: 'center' });
 
@@ -500,7 +505,7 @@ export const generateVectorAttendancePdf = (
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.2);
     doc.setTextColor(71, 85, 105);
-    doc.text('(Accompanying Official / Mentor)', leftX, footerY + 7.0, { align: 'center' });
+    doc.text('Bathinda Cluster', leftX, footerY + 7.0, { align: 'center' });
     doc.text('Bathinda Cluster', centerX, footerY + 7.0, { align: 'center' });
     doc.text('Host Institute, Bathinda Cluster', rightX, footerY + 7.0, { align: 'center' });
 
