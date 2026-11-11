@@ -52,7 +52,7 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
   const [selectedTheme, setSelectedTheme] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('custom');
-  const [studentsPerPage, setStudentsPerPage] = useState(11);
+  const [studentsPerPage, setStudentsPerPage] = useState(14);
   const [viewMode, setViewMode] = useState('paginated'); // 'paginated' or 'continuous'
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [exportProgress, setExportProgress] = useState(null);
@@ -319,10 +319,11 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                 onChange={(e) => setStudentsPerPage(Number(e.target.value))}
                 className="flex-1 py-2 px-2 rounded-xl border border-slate-300 bg-slate-50 font-medium text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
               >
-                <option value={10}>10 Students / A4</option>
-                <option value={11}>11 Students / A4 (Standard)</option>
-                <option value={12}>12 Students / A4</option>
-                <option value={14}>14 Students / Compact</option>
+                <option value={14}>14 Students / Page (Optimal - 3 Sheets)</option>
+                <option value={13}>13 Students / Page (Balanced)</option>
+                <option value={12}>12 Students / Page (Spacious)</option>
+                <option value={11}>11 Students / Page (Large Margins)</option>
+                <option value={10}>10 Students / Page (Extra Large)</option>
               </select>
               <button
                 type="button"
@@ -644,9 +645,9 @@ export const AttendanceSheet = ({ submissions = [], onBack = null, onOpenReorder
                               {/* Signature Blank Box */}
                               <td
                                 className="p-1 border border-[#cbd5e1] align-middle bg-white/70"
-                                style={{ minHeight: '32px', height: '32px' }}
+                                style={{ minHeight: '34px', height: '34px' }}
                               >
-                                <div className="w-full h-full min-h-[28px]"></div>
+                                <div className="w-full h-full min-h-[30px]"></div>
                               </td>
                             </tr>
                           );

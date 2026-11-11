@@ -210,8 +210,9 @@ export const moveTeamInList = (teams = [], fromIndex, toIndex) => {
 /**
  * Paginates teams so that no team's student group is ever split across pages,
  * ensuring each printed page cleanly fits A4 Landscape.
+ * Default is set to 14 students per page to maximize page space utilization.
  */
-export const paginateAttendanceTeams = (teams = [], maxStudentsPerPage = 11) => {
+export const paginateAttendanceTeams = (teams = [], maxStudentsPerPage = 14) => {
   if (!teams || teams.length === 0) return [];
   const pages = [];
   let currentPage = [];
@@ -298,7 +299,7 @@ export const exportAttendanceToExcel = (teams = [], filename = '') => {
 export const generateVectorAttendancePdf = (
   teams = [],
   filename = '',
-  maxStudentsPerPage = 11
+  maxStudentsPerPage = 14
 ) => {
   if (!teams || teams.length === 0) {
     throw new Error('No team records found to export to PDF');
@@ -379,6 +380,16 @@ export const generateVectorAttendancePdf = (
     doc.setTextColor(100, 100, 100);
     doc.text('Host Institute & Nodal Center', pageWidth - margin - 19, margin + 12.5, { align: 'right' });
 
+    // Dynamically adjust cell padding, row height and font size based on page density
+    const totalStudentsOnPage = pageTeams.reduce((acc, t) => acc + (t.students?.length || 1), 0);
+    const rowMinHeight = totalStudentsOnPage <= 10 ? 11 : totalStudentsOnPage <= 12 ? 9.8 : 8.6;
+    const cellPad = totalStudentsOnPage <= 10
+      ? { top: 2.2, bottom: 2.2, left: 1.5, right: 1.5 }
+      : totalStudentsOnPage <= 12
+      ? { top: 1.8, bottom: 1.8, left: 1.5, right: 1.5 }
+      : { top: 1.4, bottom: 1.4, left: 1.5, right: 1.5 };
+    const fontSize = totalStudentsOnPage <= 10 ? 8 : totalStudentsOnPage <= 12 ? 7.8 : 7.5;
+
     // Table Body with proper rowSpan
     const tableBody = [];
     pageTeams.forEach((team, tIdx) => {
@@ -404,7 +415,7 @@ export const generateVectorAttendancePdf = (
           { content: st.studentName, styles: { halign: 'left', valign: 'middle', fontStyle: 'bold', fillColor: teamBg } },
           { content: st.registrationNo, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
           { content: st.semester, styles: { halign: 'center', valign: 'middle', fillColor: teamBg } },
-          { content: '', styles: { minCellHeight: 8.5, fillColor: [255, 255, 255] } }
+          { content: '', styles: { minCellHeight: rowMinHeight, fillColor: [255, 255, 255] } }
         );
 
         tableBody.push(row);
@@ -444,7 +455,8 @@ export const generateVectorAttendancePdf = (
         lineColor: [148, 163, 184]
       },
       bodyStyles: {
-        fontSize: 7.5,
+        fontSize: fontSize,
+        cellPadding: cellPad,
         lineWidth: 0.15,
         lineColor: [203, 213, 225],
         textColor: [15, 23, 42]
@@ -501,7 +513,7 @@ export const downloadAttendancePdf = async (
   teamsOrContainer,
   filename = '',
   onProgress = null,
-  maxStudentsPerPage = 11
+  maxStudentsPerPage = 14
 ) => {
   if (Array.isArray(teamsOrContainer)) {
     return generateVectorAttendancePdf(teamsOrContainer, filename, maxStudentsPerPage);
