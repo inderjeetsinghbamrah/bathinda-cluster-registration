@@ -614,14 +614,14 @@ const renderJuryPdfPage = (
       textColor: [255, 255, 255],
       fontSize: 7.2,
       fontStyle: 'bold',
-      lineWidth: 0.15,
-      lineColor: [148, 163, 184]
+      lineWidth: 0.35,
+      lineColor: [0, 0, 0]
     },
     bodyStyles: {
       fontSize: 6.8,
       cellPadding: { top: 2, bottom: 2, left: 1, right: 1 },
-      lineWidth: 0.15,
-      lineColor: [203, 213, 225],
+      lineWidth: 0.35,
+      lineColor: [0, 0, 0],
       textColor: [15, 23, 42]
     },
     columnStyles: {
@@ -638,7 +638,8 @@ const renderJuryPdfPage = (
 
   // Footer Signatures
   const footerY = pageHeight - margin - 16;
-  doc.setDrawColor(180, 180, 180);
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
   doc.setLineDashPattern([1.5, 1.5], 0);
   doc.line(margin + 12, footerY, margin + 64, footerY);
   doc.line(pageWidth / 2 - 27, footerY, pageWidth / 2 + 27, footerY);

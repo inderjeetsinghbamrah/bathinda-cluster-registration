@@ -198,40 +198,40 @@ export const SubmissionReceipt = ({ submissionData, onResetForm }) => {
 
                 {/* Students Table */}
                 <div>
-                  <span className="text-[11px] text-slate-400 block uppercase font-bold mb-2">
+                  <span className="text-[11px] text-slate-500 block uppercase font-bold mb-2">
                     Student Team Members ({team.students.length})
                   </span>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border border-slate-200 rounded-lg">
-                      <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                    <table className="w-full text-left text-xs border-2 border-black rounded-lg border-collapse">
+                      <thead className="bg-slate-100 text-slate-900 font-bold border-b-2 border-black">
                         <tr>
-                          <th className="p-2 w-8 text-center">#</th>
-                          <th className="p-2">Name</th>
-                          <th className="p-2">Roll No.</th>
-                          <th className="p-2">Branch</th>
-                          <th className="p-2">Sem / Year</th>
-                          <th className="p-2">Email</th>
-                          <th className="p-2">Phone</th>
+                          <th className="p-2 w-8 text-center border border-black">#</th>
+                          <th className="p-2 border border-black">Name</th>
+                          <th className="p-2 border border-black">Roll No.</th>
+                          <th className="p-2 border border-black">Branch</th>
+                          <th className="p-2 border border-black">Sem / Year</th>
+                          <th className="p-2 border border-black">Email</th>
+                          <th className="p-2 border border-black">Phone</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-700">
+                      <tbody className="text-slate-800">
                         {team.students.map((std, sIdx) => (
                           <tr key={sIdx} className={sIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
-                            <td className="p-2 font-bold text-center text-slate-500">{sIdx + 1}</td>
-                            <td className="p-2 font-semibold text-slate-900">
+                            <td className="p-2 font-bold text-center text-slate-900 border border-black">{sIdx + 1}</td>
+                            <td className="p-2 font-semibold text-slate-950 border border-black">
                               {std.name} {sIdx === 0 ? '(Leader)' : ''}
                             </td>
-                            <td className="p-2 font-mono text-[11px]">{std.registrationNo}</td>
-                            <td className="p-2 text-[11px]">
+                            <td className="p-2 font-mono text-[11px] font-bold text-slate-900 border border-black">{std.registrationNo}</td>
+                            <td className="p-2 text-[11px] border border-black">
                               {std.department === 'Others' ? std.departmentOther : std.department}
                             </td>
-                            <td className="p-2 font-semibold text-[11px] text-blue-900">
+                            <td className="p-2 font-bold text-[11px] text-blue-900 border border-black">
                               {std.semester || '-'}
                             </td>
-                            <td className="p-2 text-[11px] text-slate-600">
+                            <td className="p-2 text-[11px] text-slate-700 border border-black">
                               {std.email || '-'}
                             </td>
-                            <td className="p-2 font-mono text-[11px]">{std.contact}</td>
+                            <td className="p-2 font-mono text-[11px] font-semibold text-slate-900 border border-black">{std.contact}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -256,8 +256,8 @@ export const SubmissionReceipt = ({ submissionData, onResetForm }) => {
             </div>
 
             <div className="print-only text-right min-w-[180px] pt-4 sm:pt-0">
-              <div className="h-12 border-b border-slate-400"></div>
-              <span className="text-[10px] uppercase font-bold text-slate-600 block mt-1">
+              <div className="h-12 border-b-2 border-black"></div>
+              <span className="text-[10px] uppercase font-bold text-slate-800 block mt-1">
                 Authorized Signature / Seal
               </span>
             </div>

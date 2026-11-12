@@ -86,7 +86,7 @@
 
   .print-receipt-card {
     box-shadow: none !important;
-    border: 1px solid #333 !important;
+    border: 2px solid #000000 !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 20px !important;
@@ -122,7 +122,7 @@
 
   .print-board-sheet {
     box-shadow: none !important;
-    border: 1.5px solid #0e3868 !important;
+    border: 2px solid #000000 !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
@@ -136,6 +136,7 @@
     width: 100% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
+    border: 2px solid #000000 !important;
   }
 
   .print-board-sheet th,
@@ -143,11 +144,19 @@
     padding: 3px 4px !important;
     font-size: 8.5px !important;
     line-height: 1.2 !important;
+    border: 1.5px solid #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  .print-board-sheet th {
+    border: 1.5px solid #000000 !important;
+    background-color: #0e3868 !important;
+    color: #ffffff !important;
   }
 
   .attendance-page-sheet {
     box-shadow: none !important;
-    border: 1.5px solid #0e3868 !important;
+    border: 2px solid #000000 !important;
     border-radius: 4px !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -169,7 +178,7 @@
 
   .jury-attendance-sheet {
     box-shadow: none !important;
-    border: 1.5px solid #0e3868 !important;
+    border: 2px solid #000000 !important;
     border-radius: 4px !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -205,6 +214,7 @@
     width: 100% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
+    border: 2px solid #000000 !important;
   }
 
   .jury-attendance-sheet th,
@@ -212,6 +222,14 @@
     padding: 2px 3px !important;
     font-size: 8px !important;
     line-height: 1.15 !important;
+    border: 1.5px solid #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  .jury-attendance-sheet th {
+    border: 1.5px solid #000000 !important;
+    background-color: #0e3868 !important;
+    color: #ffffff !important;
   }
 
   .attendance-page-sheet:last-of-type,
@@ -226,6 +244,7 @@
     width: 100% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
+    border: 2px solid #000000 !important;
   }
 
   .attendance-page-sheet th,
@@ -233,6 +252,14 @@
     padding: 2.5px 3px !important;
     font-size: 8.5px !important;
     line-height: 1.2 !important;
+    border: 1.5px solid #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  .attendance-page-sheet th {
+    border: 1.5px solid #000000 !important;
+    background-color: #0e3868 !important;
+    color: #ffffff !important;
   }
 
   .attendance-page-sheet td.roll-no-cell {
@@ -245,7 +272,7 @@
   /* Official Jury Rubric Score Sheet Print Styles */
   .rubric-score-sheet {
     box-shadow: none !important;
-    border: 1.5px solid #0e3868 !important;
+    border: 2px solid #000000 !important;
     border-radius: 4px !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -266,6 +293,7 @@
     width: 100% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
+    border: 2px solid #000000 !important;
   }
 
   .rubric-score-sheet th,
@@ -273,6 +301,62 @@
     padding: 1.5px 3px !important;
     font-size: 7.5px !important;
     line-height: 1.15 !important;
+    border: 1.5px solid #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  .rubric-score-sheet th {
+    border: 1.5px solid #000000 !important;
+    background-color: #0e3868 !important;
+    color: #ffffff !important;
+  }
+
+  /* Rubric subtotal group banner row */
+  .rubric-score-sheet tr.bg-slate-200 td,
+  .rubric-score-sheet tr td[colspan="5"] {
+    border: 1.5px solid #000000 !important;
+    border-color: #000000 !important;
+    background-color: #e2e8f0 !important;
+    color: #0e3868 !important;
+    font-weight: 800 !important;
+  }
+
+  /* Physical check score boxes inside rubric sheet */
+  .rubric-score-sheet span.w-4.h-4 {
+    border: 1.5px solid #000000 !important;
+  }
+
+  /* Evaluator observation line */
+  .rubric-score-sheet .border-dotted {
+    border-bottom: 1.5px dotted #000000 !important;
+  }
+
+  /* Dashed signature lines on all printable sheets */
+  .border-dashed {
+    border-bottom: 2px dashed #000000 !important;
+  }
+
+  /* Receipt and general print tables */
+  .print-receipt-card table {
+    border-collapse: collapse !important;
+    border: 2px solid #000000 !important;
+  }
+
+  .print-receipt-card th,
+  .print-receipt-card td {
+    border: 1.5px solid #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  /* Universal print fallback for all tables and cell dividers */
+  table {
+    border-collapse: collapse !important;
+    border-color: #000000 !important;
+  }
+
+  table th,
+  table td {
+    border-color: #000000 !important;
   }
 
   * {

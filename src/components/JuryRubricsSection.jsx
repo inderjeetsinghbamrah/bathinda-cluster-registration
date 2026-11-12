@@ -33,6 +33,7 @@ import {
   generateAllThreeMasterSheetsPdf,
   exportRubricsToExcel
 } from '../lib/rubricsData';
+import { buildEvaluationsStore } from '../lib/consensusScoresData';
 import { EVENT_DETAILS } from '../lib/attendanceUtils';
 import {
   LOGO_PUNJAB_GOVT,
@@ -89,7 +90,7 @@ export const JuryRubricsSection = ({
   // Selected team data object for sheet preview
   const currentPreviewTeam = useMemo(() => {
     if (selectedTeamCode === 'blank') return null;
-    return formattedTeams.find((t) => t.submissionCode === selectedTeamCode) || null;
+    return formattedTeams.find((t) => t.teamKey === selectedTeamCode || t.submissionCode === selectedTeamCode) || null;
   }, [selectedTeamCode, formattedTeams]);
 
   // Current judge object
@@ -166,6 +167,22 @@ export const JuryRubricsSection = ({
       localStorage.setItem('polytechnic_jury_rubric_evaluations', JSON.stringify(next));
       return next;
     });
+  };
+
+  // Populate official compiled consensus scores across 5 Core Judges for all teams
+  const handleLoadConsensusScores = () => {
+    if (Object.keys(evaluations).length > 0) {
+      if (!confirm('This will load the official compiled scores for all 18 teams across the 5 Core Judges. Overwrite current evaluations?')) return;
+    }
+    const store = buildEvaluationsStore(formattedTeams);
+    setEvaluations(store);
+    try {
+      localStorage.setItem('polytechnic_jury_rubric_evaluations', JSON.stringify(store));
+      setSaveSuccessMessage('Official compiled final scores successfully loaded across all 5 Core Judges!');
+      setTimeout(() => setSaveSuccessMessage(''), 5000);
+    } catch (err) {
+      console.error('Failed to save evaluations store:', err);
+    }
   };
 
   // PDF Handlers
@@ -338,6 +355,17 @@ export const JuryRubricsSection = ({
             >
               <Layers className="w-3.5 h-3.5 text-slate-500" />
               <span>Rubrics Guide</span>
+            </button>
+
+            {/* Load Official Compiled Final Scores */}
+            <button
+              type="button"
+              onClick={handleLoadConsensusScores}
+              className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 active:scale-95 text-blue-950 font-black text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
+              title="Pre-populate verified scores for all 18 teams across 5 Core Judges matching the target compiled final scores"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-blue-950" />
+              <span>Load Compiled Final Scores</span>
             </button>
 
             {/* Excel Export */}
@@ -554,9 +582,9 @@ export const JuryRubricsSection = ({
           </div>
 
           {/* Table Container */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-3xl border border-slate-300 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full text-left border-collapse text-xs border border-slate-300">
                 <thead>
                   {/* Tier 1 Header: Main Parameters */}
                   <tr className="bg-[#0e3868] text-white uppercase text-[10px] font-extrabold tracking-wider border-b border-blue-950 text-center">
@@ -633,7 +661,7 @@ export const JuryRubricsSection = ({
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-300">
                   {formattedTeams.length === 0 ? (
                     <tr>
                       <td colSpan={sheetVariant !== 'individual' ? 28 : 26} className="p-8 text-center text-slate-400 font-semibold">
@@ -642,7 +670,7 @@ export const JuryRubricsSection = ({
                     </tr>
                   ) : (
                     formattedTeams.map((team, tIdx) => {
-                      const teamScores = evaluations[team.submissionCode]?.[selectedJudgeSlot]?.scores || {};
+                      const teamScores = evaluations[team.teamKey]?.[selectedJudgeSlot]?.scores || evaluations[team.submissionCode]?.[selectedJudgeSlot]?.scores || {};
                       let totalScored = 0;
                       let hasScores = false;
                       RUBRICS_FLAT_LIST.forEach((sp) => {
@@ -658,12 +686,12 @@ export const JuryRubricsSection = ({
                       return (
                         <tr key={team.teamKey || team.submissionCode} className={`${rowBg} hover:bg-blue-50/60 transition`}>
                           {/* Sr. No. */}
-                          <td className="py-2.5 px-2 text-center font-bold text-slate-600 border-r border-slate-200">
+                          <td className="py-2.5 px-2 text-center font-bold text-slate-600 border-r border-slate-300">
                             {team.globalSrNo}
                           </td>
 
                           {/* Team Code */}
-                          <td className="py-2.5 px-2 text-center border-r border-slate-200 whitespace-nowrap">
+                          <td className="py-2.5 px-2 text-center border-r border-slate-300 whitespace-nowrap">
                             <span className="px-2.5 py-1 rounded-lg bg-[#0e3868] text-white font-mono font-black text-xs tracking-wider shadow-2xs border border-blue-900 inline-block">
                               {team.teamCode || `TEAM ${String(team.globalSrNo).padStart(2, '0')}`}
                             </span>
@@ -671,19 +699,19 @@ export const JuryRubricsSection = ({
 
                           {/* Name of Institution (Sheet 1 & Sheet 2) */}
                           {sheetVariant !== 'individual' && (
-                            <td className="py-2 px-3 border-r border-slate-200 font-bold text-slate-800 text-[11px] uppercase leading-snug">
+                            <td className="py-2 px-3 border-r border-slate-300 font-bold text-slate-800 text-[11px] uppercase leading-snug">
                               {team.instituteName}
                             </td>
                           )}
 
                           {/* Project Title */}
-                          <td className="py-2.5 px-3 border-r border-slate-200 font-extrabold text-slate-900 text-xs uppercase leading-snug">
+                          <td className="py-2.5 px-3 border-r border-slate-300 font-extrabold text-slate-900 text-xs uppercase leading-snug">
                             {team.projectTitle}
                           </td>
 
                           {/* Team Details: Mentor & Students (Sheet 1 & Sheet 2) */}
                           {sheetVariant !== 'individual' && (
-                            <td className="py-2 px-3 border-r border-slate-200 text-slate-700 text-[10.5px] leading-tight">
+                            <td className="py-2 px-3 border-r border-slate-300 text-slate-700 text-[10.5px] leading-tight">
                               <div className="font-extrabold text-blue-950">
                                 Mentor: <span className="font-semibold text-slate-800">{team.mentorName || '-'}</span>
                               </div>
@@ -700,7 +728,7 @@ export const JuryRubricsSection = ({
                             return (
                               <td
                                 key={sp.id}
-                                className="py-2 px-1 text-center border-r border-slate-200 font-bold text-xs"
+                                className="py-2 px-1 text-center border-r border-slate-300 font-bold text-xs"
                                 title={`${sp.title} (Max ${sp.maxMarks} Marks)`}
                               >
                                 {isPresent ? (
@@ -715,7 +743,7 @@ export const JuryRubricsSection = ({
                           })}
 
                           {/* Total Score */}
-                          <td className="py-2.5 px-2 text-center border-r border-slate-200 font-black text-xs bg-slate-100/70">
+                          <td className="py-2.5 px-2 text-center border-r border-slate-300 font-black text-xs bg-slate-100/70">
                             {hasScores ? (
                               <span className="px-2 py-0.5 rounded-md bg-blue-900 text-white font-mono font-black text-xs shadow-2xs">
                                 {totalScored}
@@ -730,7 +758,7 @@ export const JuryRubricsSection = ({
                             <button
                               type="button"
                               onClick={() => {
-                                setSelectedTeamCode(team.submissionCode);
+                                setSelectedTeamCode(team.teamKey || team.submissionCode);
                                 setSubView('live_scoring');
                               }}
                               className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 font-bold text-[11px] transition cursor-pointer"
@@ -903,8 +931,8 @@ export const JuryRubricsSection = ({
             </button>
 
             {showElaboratedGuide && (
-              <div className="p-4 border-t border-slate-200 overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
+              <div className="p-4 border-t border-slate-300 overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs border border-slate-300">
                   <thead>
                     <tr className="bg-[#0e3868] text-white uppercase text-[10px] font-extrabold tracking-wider border-b border-blue-950">
                       <th className="py-2.5 px-2 text-center w-10 border-r border-blue-900">No.</th>
@@ -917,30 +945,30 @@ export const JuryRubricsSection = ({
                       <th className="py-2.5 px-3 text-emerald-300">Score 3</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody className="divide-y divide-slate-300">
                     {RUBRICS_FLAT_LIST.map((sp, idx) => (
                       <tr key={sp.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
-                        <td className="py-2 px-2 text-center border-r border-slate-200 font-mono font-bold text-slate-700">
+                        <td className="py-2 px-2 text-center border-r border-slate-300 font-mono font-bold text-slate-700">
                           {sp.id}
                         </td>
-                        <td className="py-2 px-3 border-r border-slate-200 font-bold text-[#0e3868] text-[11px]">
+                        <td className="py-2 px-3 border-r border-slate-300 font-bold text-[#0e3868] text-[11px]">
                           {sp.parameterShortTitle}
                         </td>
-                        <td className="py-2 px-3 border-r border-slate-200 font-extrabold text-slate-900 text-[11px] leading-tight">
+                        <td className="py-2 px-3 border-r border-slate-300 font-extrabold text-slate-900 text-[11px] leading-tight">
                           {sp.title}
                         </td>
-                        <td className="py-2 px-2 text-center border-r border-slate-200 font-black text-slate-900">
+                        <td className="py-2 px-2 text-center border-r border-slate-300 font-black text-slate-900">
                           <span className="inline-block w-6 h-6 rounded-full leading-6 text-center bg-blue-100 text-blue-900 text-xs font-black">
                             {sp.maxMarks}
                           </span>
                         </td>
-                        <td className="py-2 px-3 border-r border-slate-200 text-[11px] text-slate-600 bg-rose-50/20 leading-snug">
+                        <td className="py-2 px-3 border-r border-slate-300 text-[11px] text-slate-600 bg-rose-50/20 leading-snug">
                           {sp.descriptors[0]}
                         </td>
-                        <td className="py-2 px-3 border-r border-slate-200 text-[11px] text-slate-700 bg-amber-50/20 leading-snug">
+                        <td className="py-2 px-3 border-r border-slate-300 text-[11px] text-slate-700 bg-amber-50/20 leading-snug">
                           {sp.descriptors[1]}
                         </td>
-                        <td className="py-2 px-3 border-r border-slate-200 text-[11px] text-slate-700 bg-blue-50/20 leading-snug">
+                        <td className="py-2 px-3 border-r border-slate-300 text-[11px] text-slate-700 bg-blue-50/20 leading-snug">
                           {sp.descriptors[2]}
                         </td>
                         <td className="py-2 px-3 text-[11px] leading-snug">
@@ -1011,9 +1039,9 @@ export const JuryRubricsSection = ({
           </div>
 
           {/* Master Rubric Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-300 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full text-left border-collapse text-xs border border-slate-300">
                 <thead>
                   <tr className="bg-[#0e3868] text-white uppercase text-[10px] font-extrabold tracking-wider border-b border-blue-950">
                     <th className="py-3 px-2 text-center w-10 border-r border-blue-900">No.</th>
@@ -1026,7 +1054,7 @@ export const JuryRubricsSection = ({
                     <th className="py-3 px-3 text-emerald-300">Score 3</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-300">
                   {filteredRubrics.map((sp, idx) => {
                     const isParam1 = sp.parameterNumber === 1;
                     const isParam2 = sp.parameterNumber === 2;
@@ -1039,12 +1067,12 @@ export const JuryRubricsSection = ({
                     return (
                       <tr key={sp.id} style={{ backgroundColor: rowBg }} className="hover:bg-blue-50/50 transition">
                         {/* No */}
-                        <td className="py-2.5 px-2 text-center font-bold text-slate-700 border-r border-slate-200 text-xs">
+                        <td className="py-2.5 px-2 text-center font-bold text-slate-700 border-r border-slate-300 text-xs">
                           {sp.number}
                         </td>
 
                         {/* Parameter */}
-                        <td className="py-2.5 px-3 border-r border-slate-200 font-bold text-slate-900">
+                        <td className="py-2.5 px-3 border-r border-slate-300 font-bold text-slate-900">
                           <span
                             className={`inline-block px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-wide ${
                               isParam1
@@ -1061,12 +1089,12 @@ export const JuryRubricsSection = ({
                         </td>
 
                         {/* Sub-parameter Title */}
-                        <td className="py-2.5 px-3 border-r border-slate-200 font-extrabold text-slate-900 text-[11px] leading-tight">
+                        <td className="py-2.5 px-3 border-r border-slate-300 font-extrabold text-slate-900 text-[11px] leading-tight">
                           {sp.title}
                         </td>
 
                         {/* Max Marks */}
-                        <td className="py-2.5 px-2 text-center border-r border-slate-200 font-black text-slate-900 text-sm">
+                        <td className="py-2.5 px-2 text-center border-r border-slate-300 font-black text-slate-900 text-sm">
                           <span
                             className={`inline-block w-7 h-7 rounded-full leading-7 text-center ${
                               sp.maxMarks === 3
@@ -1079,19 +1107,19 @@ export const JuryRubricsSection = ({
                         </td>
 
                         {/* Score 0 */}
-                        <td className="py-2.5 px-3 border-r border-slate-200 text-[11px] text-slate-600 bg-rose-50/20 leading-snug">
+                        <td className="py-2.5 px-3 border-r border-slate-300 text-[11px] text-slate-600 bg-rose-50/20 leading-snug">
                           <span className="font-bold text-rose-700 block text-[9.5px] uppercase mb-0.5">0 Marks</span>
                           {sp.descriptors[0]}
                         </td>
 
                         {/* Score 1 */}
-                        <td className="py-2.5 px-3 border-r border-slate-200 text-[11px] text-slate-700 bg-amber-50/20 leading-snug">
+                        <td className="py-2.5 px-3 border-r border-slate-300 text-[11px] text-slate-700 bg-amber-50/20 leading-snug">
                           <span className="font-bold text-amber-700 block text-[9.5px] uppercase mb-0.5">1 Mark</span>
                           {sp.descriptors[1]}
                         </td>
 
                         {/* Score 2 */}
-                        <td className="py-2.5 px-3 border-r border-slate-200 text-[11px] text-slate-700 bg-blue-50/20 leading-snug">
+                        <td className="py-2.5 px-3 border-r border-slate-300 text-[11px] text-slate-700 bg-blue-50/20 leading-snug">
                           <span className="font-bold text-blue-700 block text-[9.5px] uppercase mb-0.5">2 Marks</span>
                           {sp.descriptors[2]}
                         </td>
@@ -1169,7 +1197,7 @@ export const JuryRubricsSection = ({
 
           {/* Printable Sheet Card */}
           <div
-            className="rubric-score-sheet bg-white text-slate-900 shadow-xl rounded-2xl border-2 border-[#0e3868] p-4 sm:p-5 relative mx-auto"
+            className="rubric-score-sheet bg-white text-slate-900 shadow-xl rounded-2xl border-2 border-black p-4 sm:p-5 relative mx-auto"
             style={{
               width: '1120px',
               maxWidth: '100%',
@@ -1178,7 +1206,7 @@ export const JuryRubricsSection = ({
             }}
           >
             {/* OFFICIAL HEADER (LOGOS ONLY) */}
-            <div className="pb-2.5 border-b-2 border-[#0e3868]">
+            <div className="pb-2.5 border-b-2 border-black">
               <div className="flex items-center justify-between" style={{ gap: '14px' }}>
                 {/* LEFT: Punjab Govt & Tech Ed Logos Only */}
                 <div className="flex items-center gap-3 flex-shrink-0" style={{ minWidth: '120px' }}>
@@ -1205,17 +1233,17 @@ export const JuryRubricsSection = ({
                     Official Evaluation Rubric &amp; Jury Score Sheet (Maximum 50 Marks)
                   </div>
 
-                  <div style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '9999px', padding: '2px 14px', fontSize: '9px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', whiteSpace: 'nowrap' }}>
+                  <div style={{ backgroundColor: '#f1f5f9', border: '1px solid #000000', borderRadius: '9999px', padding: '2px 14px', fontSize: '9px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', whiteSpace: 'nowrap' }}>
                     <span>
-                      <span style={{ color: '#64748b' }}>Cluster:</span> Bathinda
+                      <span style={{ color: '#000000' }}>Cluster:</span> Bathinda
                     </span>
-                    <span style={{ color: '#94a3b8' }}>|</span>
+                    <span style={{ color: '#000000' }}>|</span>
                     <span>
-                      <span style={{ color: '#64748b' }}>Venue / Host:</span> {EVENT_DETAILS.hostInstitute}
+                      <span style={{ color: '#000000' }}>Venue / Host:</span> {EVENT_DETAILS.hostInstitute}
                     </span>
-                    <span style={{ color: '#94a3b8' }}>|</span>
+                    <span style={{ color: '#000000' }}>|</span>
                     <span>
-                      <span style={{ color: '#64748b' }}>Date:</span> {EVENT_DETAILS.eventDate}
+                      <span style={{ color: '#000000' }}>Date:</span> {EVENT_DETAILS.eventDate}
                     </span>
                   </div>
                 </div>
@@ -1233,9 +1261,9 @@ export const JuryRubricsSection = ({
             </div>
 
             {/* PROJECT METADATA CARD (ONLY TEAM CODE & PROJECT TITLE) */}
-            <div className="mt-2.5 p-2 px-3 rounded-xl bg-slate-50 border border-slate-300 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="mt-2.5 p-2 px-3 rounded-xl bg-slate-50 border-2 border-black flex flex-wrap items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1 rounded-lg bg-[#0e3868] text-white font-mono font-black text-xs tracking-wider shadow-2xs">
+                <span className="px-3 py-1 rounded-lg bg-[#0e3868] text-white font-mono font-black text-xs tracking-wider shadow-2xs border border-black">
                   {currentPreviewTeam?.teamCode || 'TEAM [  ]'}
                 </span>
                 <div className="flex items-center gap-1.5">
@@ -1247,7 +1275,7 @@ export const JuryRubricsSection = ({
               </div>
 
               <div className="flex items-center gap-2 text-xs">
-                <span className="font-bold text-slate-500 uppercase text-[10px]">Evaluator:</span>
+                <span className="font-bold text-slate-700 uppercase text-[10px]">Evaluator:</span>
                 <span className="font-semibold text-slate-800">
                   {currentJudge?.name || '____________________'}
                 </span>
@@ -1256,22 +1284,22 @@ export const JuryRubricsSection = ({
 
             {/* 20 SUB-CRITERIA SCORING TABLE */}
             <div className="mt-2.5">
-              <table className="w-full border-collapse text-left" style={{ tableLayout: 'fixed' }}>
+              <table className="w-full border-collapse text-left border-2 border-black" style={{ tableLayout: 'fixed' }}>
                 <thead>
                   <tr className="bg-[#0e3868] text-white text-[9px] font-extrabold uppercase tracking-wider">
-                    <th className="p-1.5 text-center border border-[#94a3b8]" style={{ width: '3.5%' }}>Sr.</th>
-                    <th className="p-1.5 border border-[#94a3b8]" style={{ width: '46%' }}>Evaluation Parameter &amp; Sub-criteria Description</th>
-                    <th className="p-1.5 text-center border border-[#94a3b8]" style={{ width: '8.5%' }}>Max Marks</th>
-                    <th className="p-1.5 text-center border border-[#94a3b8] bg-[#0b2d54]" style={{ width: '22%' }}>Score Awarded (Check / Write 0,1,2,3)</th>
-                    <th className="p-1.5 text-center border border-[#94a3b8]" style={{ width: '20%' }}>Specific Evaluator Observations / Remarks</th>
+                    <th className="p-1.5 text-center border border-black align-middle" style={{ width: '3.5%' }}>Sr.</th>
+                    <th className="p-1.5 border border-black align-middle" style={{ width: '46%' }}>Evaluation Parameter &amp; Sub-criteria Description</th>
+                    <th className="p-1.5 text-center border border-black align-middle" style={{ width: '8.5%' }}>Max Marks</th>
+                    <th className="p-1.5 text-center border border-black align-middle bg-[#0b2d54]" style={{ width: '22%' }}>Score Awarded (Check / Write 0,1,2,3)</th>
+                    <th className="p-1.5 text-center border border-black align-middle" style={{ width: '20%' }}>Specific Evaluator Observations / Remarks</th>
                   </tr>
                 </thead>
                 <tbody>
                   {EVALUATION_PARAMETERS.map((param) => (
                     <React.Fragment key={param.paramNumber}>
                       {/* Parameter Subtotal Header Row */}
-                      <tr className="bg-slate-200 border border-[#94a3b8] text-slate-900 font-black text-[9.5px]">
-                        <td colSpan={5} className="p-1.5 uppercase tracking-wide bg-gradient-to-r from-blue-100 to-slate-100 text-[#0e3868]">
+                      <tr className="bg-slate-200 border border-black text-slate-900 font-black text-[9.5px]">
+                        <td colSpan={5} className="p-1.5 uppercase tracking-wide bg-gradient-to-r from-blue-100 to-slate-100 text-[#0e3868] border border-black">
                           {param.title} &bull; (Subtotal: _______ / {param.maxMarks} Marks)
                         </td>
                       </tr>
@@ -1280,50 +1308,50 @@ export const JuryRubricsSection = ({
                       {param.subParameters.map((sp) => {
                         const isMax3 = sp.maxMarks === 3;
                         return (
-                          <tr key={sp.id} className="border-b border-[#cbd5e1] text-[9.5px] hover:bg-slate-50">
+                          <tr key={sp.id} className="border-b border-black text-[9.5px] hover:bg-slate-50">
                             {/* Sr */}
-                            <td className="p-1 text-center font-bold text-slate-700 border border-[#cbd5e1]">
+                            <td className="p-1 text-center font-bold text-slate-900 border border-black">
                               {sp.number}
                             </td>
 
                             {/* Title */}
-                            <td className="p-1.5 border border-[#cbd5e1]">
-                              <div className="font-extrabold text-slate-900 leading-tight">{sp.title}</div>
-                              <div className="text-[8px] text-slate-500 mt-0.5 leading-snug">
+                            <td className="p-1.5 border border-black">
+                              <div className="font-extrabold text-slate-950 leading-tight">{sp.title}</div>
+                              <div className="text-[8px] text-slate-600 mt-0.5 leading-snug">
                                 {sp.descriptors[sp.maxMarks]}
                               </div>
                             </td>
 
                             {/* Max Marks */}
-                            <td className="p-1 text-center font-black text-slate-900 border border-[#cbd5e1] text-[11px]">
+                            <td className="p-1 text-center font-black text-slate-900 border border-black text-[11px]">
                               {sp.maxMarks}
                             </td>
 
                             {/* Physical Checkboxes / Blank Box */}
-                            <td className="p-1 border border-[#cbd5e1] align-middle bg-slate-50/50">
+                            <td className="p-1 border border-black align-middle bg-slate-50/50">
                               <div className="flex items-center justify-center gap-2">
-                                <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-slate-700">
-                                  <span className="w-4 h-4 border border-slate-400 rounded flex items-center justify-center bg-white text-[8px]"></span> 0
+                                <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-slate-900">
+                                  <span className="w-4 h-4 border-2 border-black rounded flex items-center justify-center bg-white text-[8px] font-bold"></span> 0
                                 </span>
-                                <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-slate-700">
-                                  <span className="w-4 h-4 border border-slate-400 rounded flex items-center justify-center bg-white text-[8px]"></span> 1
+                                <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-slate-900">
+                                  <span className="w-4 h-4 border-2 border-black rounded flex items-center justify-center bg-white text-[8px] font-bold"></span> 1
                                 </span>
-                                <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-slate-700">
-                                  <span className="w-4 h-4 border border-slate-400 rounded flex items-center justify-center bg-white text-[8px]"></span> 2
+                                <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-slate-900">
+                                  <span className="w-4 h-4 border-2 border-black rounded flex items-center justify-center bg-white text-[8px] font-bold"></span> 2
                                 </span>
                                 {isMax3 ? (
-                                  <span className="inline-flex items-center gap-1 font-mono text-[9px] font-black text-emerald-800">
-                                    <span className="w-4 h-4 border-2 border-emerald-600 rounded flex items-center justify-center bg-white text-[8px]"></span> 3
+                                  <span className="inline-flex items-center gap-1 font-mono text-[9px] font-black text-emerald-900">
+                                    <span className="w-4 h-4 border-2 border-black rounded flex items-center justify-center bg-white text-[8px] font-bold"></span> 3
                                   </span>
                                 ) : (
-                                  <span className="text-slate-300 text-[8px] italic">[N/A]</span>
+                                  <span className="text-slate-400 text-[8px] italic">[N/A]</span>
                                 )}
                               </div>
                             </td>
 
                             {/* Observations */}
-                            <td className="p-1 border border-[#cbd5e1] bg-white">
-                              <div className="h-4 border-b border-dotted border-slate-300"></div>
+                            <td className="p-1 border border-black bg-white">
+                              <div className="h-4 border-b-2 border-dotted border-black"></div>
                             </td>
                           </tr>
                         );
@@ -1335,7 +1363,7 @@ export const JuryRubricsSection = ({
             </div>
 
             {/* SCORING SUMMARY & SIGNATURES */}
-            <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-300">
+            <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border-2 border-black">
               <div className="flex items-center justify-between text-xs">
                 <div>
                   <span className="font-extrabold text-[#0e3868] text-sm">TOTAL SCORE OBTAINED: </span>
@@ -1353,23 +1381,23 @@ export const JuryRubricsSection = ({
               </div>
 
               {/* Signatures */}
-              <div className="mt-4 pt-2 border-t border-slate-200 flex items-start justify-between text-[9px]">
+              <div className="mt-4 pt-2 border-t-2 border-black flex items-start justify-between text-[9px]">
                 <div className="w-64 text-center">
-                  <div className="h-7 border-b border-dashed border-slate-400"></div>
+                  <div className="h-7 border-b-2 border-dashed border-black"></div>
                   <span className="font-bold text-slate-900 block mt-1 uppercase">Evaluating Jury Member</span>
-                  <span className="text-slate-500 block leading-tight">Member, Evaluation Jury Board</span>
+                  <span className="text-slate-600 block leading-tight">Member, Evaluation Jury Board</span>
                 </div>
 
                 <div className="w-64 text-center">
-                  <div className="h-7 border-b border-dashed border-slate-400"></div>
+                  <div className="h-7 border-b-2 border-dashed border-black"></div>
                   <span className="font-bold text-slate-900 block mt-1 uppercase">Chairperson, Jury Board</span>
-                  <span className="text-slate-500 block leading-tight">Presiding Officer &bull; Bathinda Cluster</span>
+                  <span className="text-slate-600 block leading-tight">Presiding Officer &bull; Bathinda Cluster</span>
                 </div>
 
                 <div className="w-64 text-center">
-                  <div className="h-7 border-b border-dashed border-slate-400"></div>
+                  <div className="h-7 border-b-2 border-dashed border-black"></div>
                   <span className="font-bold text-slate-900 block mt-1 uppercase">Nodal Center Validation</span>
-                  <span className="text-slate-500 block leading-tight">Government Polytechnic College, Bathinda</span>
+                  <span className="text-slate-600 block leading-tight">Government Polytechnic College, Bathinda</span>
                 </div>
               </div>
             </div>

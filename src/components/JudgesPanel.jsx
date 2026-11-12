@@ -291,7 +291,7 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
         key={bannerTitle}
         className={`jury-attendance-sheet ${
           isPageBreak ? 'page-break mb-8' : 'mb-6'
-        } bg-white text-slate-900 shadow-xl rounded-2xl border-2 border-[#0e3868] p-4 sm:p-5 relative mx-auto`}
+        } bg-white text-slate-900 shadow-xl rounded-2xl border-2 border-black p-4 sm:p-5 relative mx-auto`}
         style={{
           width: '1120px',
           maxWidth: '100%',
@@ -300,7 +300,7 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
         }}
       >
         {/* HEADER SECTION: LOGOS ONLY (Left: Punjab Govt + Tech Ed, Right: GPC Bathinda) */}
-        <div className="pb-2.5 border-b-2 border-[#0e3868]">
+        <div className="pb-2.5 border-b-2 border-black">
           <div className="flex items-center justify-between" style={{ gap: '14px' }}>
             {/* LEFT: Punjab Govt & Tech Ed Logos Only */}
             <div className="flex items-center gap-3 flex-shrink-0" style={{ minWidth: '120px' }}>
@@ -332,15 +332,15 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
               </div>
 
               {/* Meta Bar Pill */}
-              <div style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '9999px', padding: '2px 14px', fontSize: '9px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', whiteSpace: 'nowrap' }}>
+              <div style={{ backgroundColor: '#f1f5f9', border: '1.5px solid #000000', borderRadius: '9999px', padding: '2px 14px', fontSize: '9px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', whiteSpace: 'nowrap' }}>
                 <span>
                   <span style={{ color: '#64748b' }}>Cluster:</span> Bathinda
                 </span>
-                <span style={{ color: '#94a3b8' }}>|</span>
+                <span style={{ color: '#000000' }}>|</span>
                 <span>
                   <span style={{ color: '#64748b' }}>Venue / Host:</span> {EVENT_DETAILS.hostInstitute}
                 </span>
-                <span style={{ color: '#94a3b8' }}>|</span>
+                <span style={{ color: '#000000' }}>|</span>
                 <span>
                   <span style={{ color: '#64748b' }}>Date:</span> {EVENT_DETAILS.eventDate}
                 </span>
@@ -373,31 +373,31 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
 
         {/* OFFICIAL TABLE */}
         <div className="mt-2.5">
-          <table className="w-full border-collapse text-left" style={{ tableLayout: 'fixed' }}>
+          <table className="w-full border-collapse text-left border-2 border-black" style={{ tableLayout: 'fixed' }}>
             <thead>
               <tr className="bg-[#0e3868] text-white text-[9px] font-bold uppercase tracking-wider">
-                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '3.5%' }}>
+                <th className="p-1.5 text-center border border-black align-middle" style={{ width: '3.5%' }}>
                   Sr. No.
                 </th>
-                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '15%' }}>
+                <th className="p-1.5 text-center border border-black align-middle" style={{ width: '15%' }}>
                   Jury Designation / Role
                 </th>
-                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '19%' }}>
+                <th className="p-1.5 text-center border border-black align-middle" style={{ width: '19%' }}>
                   Judge Full Name &amp; Contact No.
                 </th>
-                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '21%' }}>
+                <th className="p-1.5 text-center border border-black align-middle" style={{ width: '21%' }}>
                   Designation, Organisation &amp; Location
                 </th>
-                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '15%' }}>
+                <th className="p-1.5 text-center border border-black align-middle" style={{ width: '15%' }}>
                   Domain Specialization
                 </th>
-                <th className="p-1.5 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]" style={{ width: '7%' }}>
+                <th className="p-1.5 text-center border border-black align-middle bg-[#0b2d54]" style={{ width: '7%' }}>
                   Reporting<br />In-Time
                 </th>
-                <th className="p-1.5 text-center border border-[#94a3b8] align-middle bg-[#0b2d54]" style={{ width: '13%' }}>
+                <th className="p-1.5 text-center border border-black align-middle bg-[#0b2d54]" style={{ width: '13%' }}>
                   Attendance / Physical Signature
                 </th>
-                <th className="p-1.5 text-center border border-[#94a3b8] align-middle" style={{ width: '6.5%' }}>
+                <th className="p-1.5 text-center border border-black align-middle" style={{ width: '6.5%' }}>
                   Remarks
                 </th>
               </tr>
@@ -413,35 +413,35 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
                   <tr
                     key={slot.slotKey}
                     style={{ backgroundColor: rowBg }}
-                    className="text-slate-900 border-b border-[#cbd5e1] text-[9.5px]"
+                    className="text-slate-900 border-b border-black text-[9.5px]"
                   >
                     {/* Sr. No. */}
-                    <td className="p-1.5 text-center font-black text-slate-800 text-[10.5px] border border-[#cbd5e1] align-middle">
+                    <td className="p-1.5 text-center font-black text-slate-900 text-[10.5px] border border-black align-middle">
                       {idx + 1}
                     </td>
 
                     {/* Jury Role */}
-                    <td className="p-1.5 border border-[#cbd5e1] align-middle">
+                    <td className="p-1.5 border border-black align-middle">
                       <div className="font-extrabold text-slate-900 uppercase text-[9.5px] leading-tight">
                         {slot.label}
                       </div>
-                      <span className="text-[8px] text-slate-500 font-semibold block mt-0.5 uppercase">
+                      <span className="text-[8px] text-slate-600 font-semibold block mt-0.5 uppercase">
                         {slot.roleTitle}
                       </span>
                     </td>
 
                     {/* Judge Full Name & Contact */}
-                    <td className="p-1.5 border border-[#cbd5e1] align-middle uppercase">
+                    <td className="p-1.5 border border-black align-middle uppercase">
                       {judge?.name ? (
                         <>
-                          <div className="font-black text-slate-900 text-[10px] uppercase leading-tight">
+                          <div className="font-black text-slate-950 text-[10px] uppercase leading-tight">
                             {judge.name}
                           </div>
-                          <div className="text-[8.5px] text-slate-700 font-mono mt-0.5 font-bold">
+                          <div className="text-[8.5px] text-slate-800 font-mono mt-0.5 font-bold">
                             PH: {judge.contact || '-'}
                           </div>
                           {judge.email && (
-                            <div className="text-[8px] text-slate-500 font-mono lowercase">
+                            <div className="text-[8px] text-slate-600 font-mono lowercase">
                               {judge.email}
                             </div>
                           )}
@@ -454,16 +454,16 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
                     </td>
 
                     {/* Designation, Organisation & Location */}
-                    <td className="p-1.5 border border-[#cbd5e1] align-middle uppercase">
+                    <td className="p-1.5 border border-black align-middle uppercase">
                       {judge?.organisation ? (
                         <>
-                          <div className="font-bold text-slate-900 text-[9.5px] leading-tight uppercase">
+                          <div className="font-bold text-slate-950 text-[9.5px] leading-tight uppercase">
                             {judge.designation}
                           </div>
-                          <div className="text-[9px] text-slate-700 font-semibold mt-0.5 uppercase leading-tight">
+                          <div className="text-[9px] text-slate-800 font-semibold mt-0.5 uppercase leading-tight">
                             {judge.organisation}
                           </div>
-                          <div className="text-[8px] text-slate-500 font-medium uppercase mt-0.5">
+                          <div className="text-[8px] text-slate-600 font-medium uppercase mt-0.5">
                             ({judge.organisationLocation || '-'})
                           </div>
                         </>
@@ -473,9 +473,9 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
                     </td>
 
                     {/* Domain Specialization */}
-                    <td className="p-1.5 text-center border border-[#cbd5e1] align-middle uppercase">
+                    <td className="p-1.5 text-center border border-black align-middle uppercase">
                       {judge?.domain ? (
-                        <span className="inline-block px-2 py-0.5 rounded-full font-black text-[8px] bg-blue-100 text-blue-900 border border-blue-200 uppercase leading-snug">
+                        <span className="inline-block px-2 py-0.5 rounded-full font-black text-[8px] bg-blue-100 text-blue-900 border border-black uppercase leading-snug">
                           {judge.domain}
                         </span>
                       ) : (
@@ -485,7 +485,7 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
 
                     {/* Reporting In-Time Physical Blank Box */}
                     <td
-                      className="p-1 border border-[#cbd5e1] align-middle bg-white"
+                      className="p-1 border border-black align-middle bg-white"
                       style={{ minHeight: minCellHeight, height: minCellHeight }}
                     >
                       <div className="w-full h-full min-h-[30px]"></div>
@@ -493,7 +493,7 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
 
                     {/* Attendance / Physical Signature Blank Box */}
                     <td
-                      className="p-1 border border-[#cbd5e1] align-middle bg-white"
+                      className="p-1 border border-black align-middle bg-white"
                       style={{ minHeight: minCellHeight, height: minCellHeight }}
                     >
                       <div className="w-full h-full min-h-[30px]"></div>
@@ -501,7 +501,7 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
 
                     {/* Remarks Physical Blank Box */}
                     <td
-                      className="p-1 border border-[#cbd5e1] align-middle bg-white"
+                      className="p-1 border border-black align-middle bg-white"
                       style={{ minHeight: minCellHeight, height: minCellHeight }}
                     >
                       <div className="w-full h-full min-h-[30px]"></div>
@@ -514,11 +514,11 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
         </div>
 
         {/* FOOTER & OFFICIAL SIGN-OFF SECTION */}
-        <div className="mt-4 pt-2 border-t-2 border-[#0e3868]/40">
+        <div className="mt-4 pt-2 border-t-2 border-black">
           <div className="flex items-start justify-between text-xs text-slate-700 px-3 pb-1">
             {/* Left Sign: Chairperson */}
             <div className="text-center w-60">
-              <div className="h-8 border-b border-dashed border-slate-400"></div>
+              <div className="h-8 border-b-2 border-dashed border-black"></div>
               <span className="font-bold text-[10px] text-slate-900 block mt-1 uppercase">
                 Chairperson, Jury Board
               </span>
@@ -529,7 +529,7 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
 
             {/* Center Sign: Nodal Officer */}
             <div className="text-center w-60">
-              <div className="h-8 border-b border-dashed border-slate-400"></div>
+              <div className="h-8 border-b-2 border-dashed border-black"></div>
               <span className="font-bold text-[10px] text-slate-900 block mt-1 uppercase">
                 Nodal Officer
               </span>
@@ -540,7 +540,7 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
 
             {/* Right Sign: Principal */}
             <div className="text-center w-64">
-              <div className="h-8 border-b border-dashed border-slate-400"></div>
+              <div className="h-8 border-b-2 border-dashed border-black"></div>
               <span className="font-bold text-[10px] text-slate-900 block mt-1 uppercase">
                 Principal
               </span>
@@ -554,7 +554,7 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
           </div>
 
           {/* Sub-footer line */}
-          <div className="mt-1.5 pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-500 px-1">
+          <div className="mt-1.5 pt-1 border-t border-black flex items-center justify-between text-[8.5px] text-slate-700 px-1">
             <span>
               <strong>{EVENT_DETAILS.eventName}</strong> &bull; {EVENT_DETAILS.cluster} &bull; Host: {EVENT_DETAILS.hostInstitute} &bull; {subfooterTag}
             </span>
@@ -1012,21 +1012,21 @@ export const JudgesPanel = ({ onBack = null, submissions = [] }) => {
 
             {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full text-left text-xs border-collapse border border-slate-300">
                 <thead className="bg-[#0e3868] text-white font-bold border-b border-blue-950">
                   <tr className="uppercase text-[9.5px] tracking-wider">
-                    <th className="p-2.5 text-center w-12">#</th>
-                    <th className="p-2.5">Jury Role / Position</th>
-                    <th className="p-2.5">Judge Name</th>
-                    <th className="p-2.5">Contact &amp; Email</th>
-                    <th className="p-2.5">Designation &amp; Organisation</th>
-                    <th className="p-2.5">Location</th>
-                    <th className="p-2.5">Domain Specialization</th>
-                    <th className="p-2.5">Relevant Background (1-Liner)</th>
+                    <th className="p-2.5 text-center w-12 border-r border-blue-900">#</th>
+                    <th className="p-2.5 border-r border-blue-900">Jury Role / Position</th>
+                    <th className="p-2.5 border-r border-blue-900">Judge Name</th>
+                    <th className="p-2.5 border-r border-blue-900">Contact &amp; Email</th>
+                    <th className="p-2.5 border-r border-blue-900">Designation &amp; Organisation</th>
+                    <th className="p-2.5 border-r border-blue-900">Location</th>
+                    <th className="p-2.5 border-r border-blue-900">Domain Specialization</th>
+                    <th className="p-2.5 border-r border-blue-900">Relevant Background (1-Liner)</th>
                     <th className="p-2.5 text-center w-20">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-300">
                   {filteredJudgesList.map(({ slot, judge }, idx) => {
                     const isVacant = !judge;
                     return (

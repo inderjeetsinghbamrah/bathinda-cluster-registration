@@ -28,13 +28,16 @@ import {
   FileText,
   ArrowUpDown,
   Pencil,
-  Award
+  Award,
+  Sparkles
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AttendanceSheet } from './AttendanceSheet';
 import { ReorderTableView } from './ReorderTableView';
 import { EditSubmissionModal } from './EditSubmissionModal';
 import { JudgesPanel } from './JudgesPanel';
+import { RegistrationForm } from './RegistrationForm';
+import { fetchPortalStatus, setPortalStatus } from '../lib/portalStatus';
 
 export const AdminPortal = () => {
   const [token, setToken] = useState(() => localStorage.getItem('cluster_admin_token') || '');
@@ -44,6 +47,10 @@ export const AdminPortal = () => {
   const [otpSentMessage, setOtpSentMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [countdown, setCountdown] = useState(0);
+
+  // Public Portal State & Control
+  const [isPublicPortalOpen, setIsPublicPortalOpen] = useState(false);
+  const [isTogglingPortal, setIsTogglingPortal] = useState(false);
 
   // Submissions Data
   const [submissions, setSubmissions] = useState([]);
@@ -88,6 +95,36 @@ export const AdminPortal = () => {
       fetchSubmissions(token);
     }
   }, [token]);
+
+  useEffect(() => {
+    fetchPortalStatus().then((res) => {
+      if (res && typeof res.isOpen === 'boolean') {
+        setIsPublicPortalOpen(res.isOpen);
+      }
+    });
+  }, []);
+
+  const handleTogglePortalStatus = async () => {
+    setIsTogglingPortal(true);
+    try {
+      const nextState = !isPublicPortalOpen;
+      const res = await setPortalStatus(nextState, token);
+      if (res && res.success) {
+        setIsPublicPortalOpen(nextState);
+        setActionSuccessMessage(
+          nextState
+            ? 'Public Registration Portal is now OPEN. General public can submit project details.'
+            : 'Public Registration Portal is now CLOSED. Only administrators can submit entries.'
+        );
+      } else {
+        alert(res?.message || 'Failed to update portal status.');
+      }
+    } catch (err) {
+      alert(`Error toggling portal status: ${err.message}`);
+    } finally {
+      setIsTogglingPortal(false);
+    }
+  };
 
   const handleSendOtp = async () => {
     setIsSendingOtp(true);
@@ -169,7 +206,7 @@ export const AdminPortal = () => {
       }
 
       if (data.success && Array.isArray(data.data)) {
-        setSubmissions(data.data);
+        setSubmissions(data.data.filter((s) => s.submission_code !== 'SYSTEM_PORTAL_CONFIG'));
       }
     } catch (err) {
       console.error('Failed to fetch admin submissions:', err);
@@ -571,7 +608,7 @@ export const AdminPortal = () => {
               className="text-xs text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              Return to Public Registration Form
+              Return to Public Portal
             </a>
           </div>
         </div>
@@ -601,7 +638,36 @@ export const AdminPortal = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-300 hidden md:inline font-mono bg-white/10 px-2.5 py-1 rounded-lg">
+            {/* Public Registration Portal Status Indicator & Toggle Switch */}
+            <div className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-xs border border-white/15 px-3 py-1.5 rounded-xl">
+              <span className="text-[11px] text-slate-300 font-medium">Public Portal:</span>
+              {isPublicPortalOpen ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  Open
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-rose-300 bg-rose-500/20 px-2 py-0.5 rounded-md border border-rose-400/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                  Closed
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={handleTogglePortalStatus}
+                disabled={isTogglingPortal}
+                className={`ml-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer active:scale-95 disabled:opacity-50 ${
+                  isPublicPortalOpen
+                    ? 'bg-rose-600 hover:bg-rose-500 text-white'
+                    : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                }`}
+                title={isPublicPortalOpen ? 'Click to close public registration' : 'Click to open public registration'}
+              >
+                {isTogglingPortal ? 'Saving...' : isPublicPortalOpen ? 'Close for Public' : 'Open for Public'}
+              </button>
+            </div>
+
+            <span className="text-xs text-slate-300 hidden lg:inline font-mono bg-white/10 px-2.5 py-1 rounded-lg">
               {FROZEN_EMAIL}
             </span>
             <button
@@ -631,6 +697,32 @@ export const AdminPortal = () => {
           </div>
         )}
 
+        {/* Mobile Portal Status Switcher */}
+        <div className="sm:hidden mb-4 p-3 rounded-2xl bg-slate-900 text-white flex items-center justify-between border border-slate-800 no-print shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-300 font-bold">Public Portal:</span>
+            {isPublicPortalOpen ? (
+              <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/30">
+                Open
+              </span>
+            ) : (
+              <span className="text-[10px] font-black uppercase text-rose-300 bg-rose-500/20 px-2 py-0.5 rounded-md border border-rose-400/30">
+                Closed
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleTogglePortalStatus}
+            disabled={isTogglingPortal}
+            className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95 disabled:opacity-50 ${
+              isPublicPortalOpen ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
+            }`}
+          >
+            {isTogglingPortal ? 'Saving...' : isPublicPortalOpen ? 'Close for Public' : 'Open for Public'}
+          </button>
+        </div>
+
         {/* Printable Official Document Header */}
         <div className="hidden print:block mb-6 p-4 border-b-2 border-black">
           <div className="flex items-center justify-between">
@@ -647,7 +739,7 @@ export const AdminPortal = () => {
         </div>
 
         {/* Overview Stats Cards - Responsive 2x2 on mobile, 4-in-a-row on desktop */}
-        {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && (
+        {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && viewMode !== 'register' && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5 no-print">
             <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
@@ -701,7 +793,7 @@ export const AdminPortal = () => {
         )}
 
         {/* 1. PRIMARY VIEW NAVIGATION TABS (Institutes & Roster Mode) */}
-        {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && (
+        {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && viewMode !== 'register' && (
           <div className="bg-white rounded-2xl p-1.5 sm:p-2 border border-slate-200 shadow-2xs mb-4 no-print">
             <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
               {/* Tab 1: By Institutes */}
@@ -781,12 +873,27 @@ export const AdminPortal = () => {
                   7 Slots
                 </span>
               </button>
+
+              {/* Tab 6: Admin Project Registration */}
+              <button
+                type="button"
+                onClick={() => setViewMode('register')}
+                className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-2 flex-shrink-0 ${
+                  viewMode === 'register'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
+                }`}
+                title="Directly register an institute and project teams as administrator"
+              >
+                <Sparkles className="w-4 h-4 text-emerald-600" />
+                <span>+ Register Project</span>
+              </button>
             </div>
           </div>
         )}
 
         {/* 2. ACTION TOOLBAR: SEARCH + EXPORTS (No duplicate buttons) */}
-        {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && (
+        {viewMode !== 'attendance' && viewMode !== 'reorder' && viewMode !== 'judges' && viewMode !== 'register' && (
           <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs mb-5 flex flex-col md:flex-row md:items-center justify-between gap-3 no-print">
             {/* Search box - full width on mobile, max 400px on desktop */}
             <div className="relative flex-1 w-full md:max-w-md">
@@ -919,6 +1026,18 @@ export const AdminPortal = () => {
           />
         ) : viewMode === 'judges' ? (
           <JudgesPanel onBack={() => setViewMode('institutes')} submissions={submissions} />
+        ) : viewMode === 'register' ? (
+          <RegistrationForm
+            isAdminMode={true}
+            onBackToAdmin={() => {
+              setViewMode('institutes');
+              fetchSubmissions(token);
+            }}
+            onSubmissionSuccess={() => {
+              fetchSubmissions(token);
+              setActionSuccessMessage('New project submission recorded in official competition database!');
+            }}
+          />
         ) : viewMode === 'institutes' ? (
           <div className="space-y-4">
             {/* Select all header */}
@@ -1109,28 +1228,28 @@ export const AdminPortal = () => {
           </div>
         ) : (
           /* VIEW MODE 2: MASTER JOINED STUDENT ROSTER TABLE */
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-300 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full text-left text-xs border-collapse border border-slate-400">
                 <thead className="bg-slate-900 text-white font-bold border-b border-slate-800">
                   <tr>
-                    <th className="p-3 w-12 text-center">#</th>
-                    <th className="p-3">Ack Code</th>
-                    <th className="p-3">Institute Name</th>
-                    <th className="p-3">Principal &amp; Contact</th>
-                    <th className="p-3">Team</th>
-                    <th className="p-3">Project Title &amp; Theme</th>
-                    <th className="p-3">Mentor &amp; Contact</th>
-                    <th className="p-3">Student Name</th>
-                    <th className="p-3">Roll / Reg No.</th>
-                    <th className="p-3">Department</th>
-                    <th className="p-3">Sem / Year</th>
-                    <th className="p-3">Email</th>
-                    <th className="p-3">Phone</th>
+                    <th className="p-3 w-12 text-center border-r border-slate-700">#</th>
+                    <th className="p-3 border-r border-slate-700">Ack Code</th>
+                    <th className="p-3 border-r border-slate-700">Institute Name</th>
+                    <th className="p-3 border-r border-slate-700">Principal &amp; Contact</th>
+                    <th className="p-3 border-r border-slate-700">Team</th>
+                    <th className="p-3 border-r border-slate-700">Project Title &amp; Theme</th>
+                    <th className="p-3 border-r border-slate-700">Mentor &amp; Contact</th>
+                    <th className="p-3 border-r border-slate-700">Student Name</th>
+                    <th className="p-3 border-r border-slate-700">Roll / Reg No.</th>
+                    <th className="p-3 border-r border-slate-700">Department</th>
+                    <th className="p-3 border-r border-slate-700">Sem / Year</th>
+                    <th className="p-3 border-r border-slate-700">Email</th>
+                    <th className="p-3 border-r border-slate-700">Phone</th>
                     <th className="p-3 text-center no-print">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 text-slate-800">
+                <tbody className="divide-y divide-slate-300 text-slate-800">
                   {isLoadingSubmissions ? (
                     <tr>
                       <td colSpan={14} className="p-12 text-center text-slate-400">

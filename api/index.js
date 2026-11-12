@@ -194,7 +194,10 @@ router.get('/submissions', async (req, res) => {
       }
     });
 
-    const data = await subRes.json();
+    let data = await subRes.json();
+    if (Array.isArray(data)) {
+      data = data.filter((s) => s.submission_code !== 'SYSTEM_PORTAL_CONFIG');
+    }
     return res.json({ success: true, data });
   } catch (err) {
     console.error('Submissions Error:', err);
@@ -220,9 +223,9 @@ router.post('/delete-submission', async (req, res) => {
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-    const queryParam = targetIds.length === 1 
+    const queryParam = (targetIds.length === 1 
       ? `id=eq.${targetIds[0]}`
-      : `id=in.(${targetIds.join(',')})`;
+      : `id=in.(${targetIds.join(',')})`) + '&submission_code=neq.SYSTEM_PORTAL_CONFIG';
 
     const delRes = await fetch(`${supabaseUrl}/rest/v1/cluster_submissions?${queryParam}`, {
       method: 'DELETE',
@@ -531,8 +534,114 @@ router.post('/save-team-order', async (req, res) => {
   }
 });
 
+// Helper: Query portal open/closed status
+async function getPortalStatusFromSupabase() {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    return { isOpen: false, status: 'closed', message: 'Portal closed by default.' };
+  }
+
+  try {
+    const sbRes = await fetch(`${supabaseUrl}/rest/v1/cluster_submissions?submission_code=eq.SYSTEM_PORTAL_CONFIG&select=status,raw_payload`, {
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`
+      }
+    });
+
+    const rows = await sbRes.json();
+    if (Array.isArray(rows) && rows.length > 0) {
+      const cfg = rows[0];
+      const isOpen = Boolean(cfg.raw_payload?.isPublicRegistrationOpen);
+      return {
+        isOpen,
+        status: cfg.status || (isOpen ? 'open' : 'closed'),
+        updatedAt: cfg.raw_payload?.updatedAt || null,
+        closedNotice: cfg.raw_payload?.closedNotice || 'Online registration is officially closed for public submissions.'
+      };
+    }
+  } catch (e) {
+    console.error('Error fetching portal config from DB:', e);
+  }
+
+  // Default: Closed
+  return { isOpen: false, status: 'closed' };
+}
+
+// 7. GET /api/admin/portal-status & /api/portal-status
+const handleGetPortalStatus = async (req, res) => {
+  try {
+    const statusData = await getPortalStatusFromSupabase();
+    return res.json({ success: true, ...statusData });
+  } catch (err) {
+    return res.json({ success: true, isOpen: false, status: 'closed', error: err.message });
+  }
+};
+
+router.get('/portal-status', handleGetPortalStatus);
+
+// 8. POST /api/admin/toggle-portal-status
+router.post('/toggle-portal-status', async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.replace(/^Bearer\s+/, '').trim();
+
+    if (!verifyAdminToken(token)) {
+      return res.status(401).json({ success: false, message: 'Unauthorized session.' });
+    }
+
+    const { isOpen, notice } = req.body || {};
+    const boolIsOpen = Boolean(isOpen);
+
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) {
+      return res.status(500).json({ success: false, message: 'Supabase credentials missing.' });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data, error } = await supabase
+      .from('cluster_submissions')
+      .upsert({
+        submission_code: 'SYSTEM_PORTAL_CONFIG',
+        institute_name: 'SYSTEM_CONFIG',
+        principal_name: 'System Administrator',
+        principal_contact: 'admin@cluster',
+        teams_count: 1,
+        status: boolIsOpen ? 'open' : 'closed',
+        raw_payload: {
+          isPublicRegistrationOpen: boolIsOpen,
+          closedNotice: notice || 'Online registration is officially closed for public submissions.',
+          updatedAt: new Date().toISOString()
+        }
+      }, { onConflict: 'submission_code' })
+      .select();
+
+    if (error) {
+      throw new Error(`Failed to update portal status: ${error.message}`);
+    }
+
+    return res.json({
+      success: true,
+      isOpen: boolIsOpen,
+      message: boolIsOpen
+        ? 'Public registration portal has been OPENED.'
+        : 'Public registration portal has been CLOSED (Admin-only access).'
+    });
+  } catch (err) {
+    console.error('Toggle portal status error:', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Standard Vercel Serverless Function entry point
 const app = express();
+app.use(express.json());
 app.use('/api/admin', router);
+
+// Direct public alias endpoints
+app.get('/api/portal-status', handleGetPortalStatus);
 
 export default app;

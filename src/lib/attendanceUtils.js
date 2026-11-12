@@ -446,7 +446,7 @@ export const generateVectorAttendancePdf = (
 
     // Center Meta Bar
     doc.setFillColor(241, 245, 249);
-    doc.setDrawColor(203, 213, 225);
+    doc.setDrawColor(148, 163, 184);
     doc.setLineWidth(0.3);
     doc.roundedRect(pageWidth / 2 - 75, margin + 16, 150, 4.5, 2.25, 2.25, 'FD');
     doc.setFontSize(7.2);
@@ -534,14 +534,14 @@ export const generateVectorAttendancePdf = (
         textColor: [255, 255, 255],
         fontSize: 7.0,
         fontStyle: 'bold',
-        lineWidth: 0.15,
-        lineColor: [148, 163, 184]
+        lineWidth: 0.35,
+        lineColor: [0, 0, 0]
       },
       bodyStyles: {
         fontSize: fontSize,
         cellPadding: cellPad,
-        lineWidth: 0.15,
-        lineColor: [203, 213, 225],
+        lineWidth: 0.35,
+        lineColor: [0, 0, 0],
         textColor: [15, 23, 42]
       },
       columnStyles: {
@@ -561,7 +561,8 @@ export const generateVectorAttendancePdf = (
 
     // Footer Signatures
     const footerY = pageHeight - margin - 16;
-    doc.setDrawColor(180, 180, 180);
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.4);
     doc.setLineDashPattern([1.5, 1.5], 0);
     doc.line(margin + 12, footerY, margin + 64, footerY);
     doc.line(pageWidth / 2 - 27, footerY, pageWidth / 2 + 27, footerY);

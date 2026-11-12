@@ -345,7 +345,7 @@ const renderPdfHeader = (doc, title, subtitle, isLandscape = true) => {
 
   // Center Meta Bar
   doc.setFillColor(241, 245, 249);
-  doc.setDrawColor(203, 213, 225);
+  doc.setDrawColor(148, 163, 184);
   doc.setLineWidth(0.3);
   const metaWidth = isLandscape ? 160 : 140;
   doc.roundedRect(pageWidth / 2 - metaWidth / 2, margin + 15.5, metaWidth, 4.3, 2.15, 2.15, 'FD');
@@ -446,13 +446,13 @@ export const generateVectorRubricsGuidePdf = (filename = null) => {
         textColor: [255, 255, 255],
         fontSize: 6.8,
         fontStyle: 'bold',
-        lineWidth: 0.15,
-        lineColor: [148, 163, 184]
+        lineWidth: 0.35,
+        lineColor: [0, 0, 0]
       },
       bodyStyles: {
         fontSize: 6.2,
-        lineColor: [203, 213, 225],
-        lineWidth: 0.15,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.35,
         textColor: [15, 23, 42],
         cellPadding: { top: 1.5, bottom: 1.5, left: 1.2, right: 1.2 }
       },
@@ -600,13 +600,13 @@ export const generateVectorTeamScoreSheetPdf = (teamData = null, judgeName = '',
       textColor: [255, 255, 255],
       fontSize: 6.8,
       fontStyle: 'bold',
-      lineWidth: 0.15,
-      lineColor: [148, 163, 184]
+      lineWidth: 0.35,
+      lineColor: [0, 0, 0]
     },
     bodyStyles: {
       fontSize: 6,
-      lineColor: [203, 213, 225],
-      lineWidth: 0.15,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.35,
       textColor: [15, 23, 42],
       cellPadding: { top: 1.1, bottom: 1.1, left: 1.5, right: 1.5 }
     },
@@ -771,13 +771,13 @@ export const generateBatchAllTeamsScoreSheetsPdf = (teamsList = [], filename = n
         textColor: [255, 255, 255],
         fontSize: 6.8,
         fontStyle: 'bold',
-        lineWidth: 0.15,
-        lineColor: [148, 163, 184]
+        lineWidth: 0.35,
+        lineColor: [0, 0, 0]
       },
       bodyStyles: {
         fontSize: 6,
-        lineColor: [203, 213, 225],
-        lineWidth: 0.15,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.35,
         textColor: [15, 23, 42],
         cellPadding: { top: 1.1, bottom: 1.1, left: 1.5, right: 1.5 }
       },
@@ -1105,16 +1105,16 @@ const renderMasterMatrixPage = (
       textColor: [255, 255, 255],
       fontSize: hasInstituteAndTeam ? 5.6 : 6.2,
       fontStyle: 'bold',
-      lineWidth: 0.15,
-      lineColor: [148, 163, 184],
+      lineWidth: 0.35,
+      lineColor: [0, 0, 0],
       cellPadding: hasInstituteAndTeam
         ? { top: 0.9, bottom: 0.9, left: 0.4, right: 0.4 }
         : { top: 1.1, bottom: 1.1, left: 0.5, right: 0.5 }
     },
     bodyStyles: {
       fontSize: hasInstituteAndTeam ? 5.3 : 6.5,
-      lineColor: [203, 213, 225],
-      lineWidth: 0.15,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.35,
       textColor: [15, 23, 42],
       cellPadding: hasInstituteAndTeam
         ? { top: 0.75, bottom: 0.75, left: 0.5, right: 0.5 }
@@ -1151,7 +1151,8 @@ const renderMasterMatrixPage = (
     const boxW = (totalW - (sigs.length - 1) * gap) / sigs.length; // ~38.2mm
     sigs.forEach((item, sIdx) => {
       const x = 7 + sIdx * (boxW + gap);
-      doc.setDrawColor(180, 180, 180);
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.4);
       doc.setLineDashPattern([1, 1], 0);
       doc.line(x, finalY + 8.5, x + boxW, finalY + 8.5);
       doc.setLineDashPattern([], 0);
@@ -1188,7 +1189,8 @@ const renderMasterMatrixPage = (
     const boxW = (totalW - (sigs.length - 1) * gap) / sigs.length; // ~53.8mm
     sigs.forEach((item, sIdx) => {
       const x = 7 + sIdx * (boxW + gap);
-      doc.setDrawColor(180, 180, 180);
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.4);
       doc.setLineDashPattern([1, 1], 0);
       doc.line(x, finalY + 9.0, x + boxW, finalY + 9.0);
       doc.setLineDashPattern([], 0);
@@ -1217,7 +1219,7 @@ const renderMasterMatrixPage = (
     const boxY = finalY + 4;
     const boxH = 17.5;
     doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(203, 213, 225);
+    doc.setDrawColor(100, 116, 139);
     doc.setLineWidth(0.3);
     doc.roundedRect(7, boxY, 165, boxH, 1.5, 1.5, 'FD');
 
@@ -1226,7 +1228,7 @@ const renderMasterMatrixPage = (
     doc.setTextColor(71, 85, 105);
     doc.text("EVALUATOR'S OVERALL OBSERVATIONS / KEY REMARKS:", 9, boxY + 3.8);
 
-    doc.setDrawColor(215, 220, 230);
+    doc.setDrawColor(148, 163, 184);
     doc.setLineDashPattern([1, 1], 0);
     doc.line(9, boxY + 8.5, 169, boxY + 8.5);
     doc.line(9, boxY + 13, 169, boxY + 13);
@@ -1234,7 +1236,7 @@ const renderMasterMatrixPage = (
 
     // Right Box: Evaluator Signature Block (width 114mm) - PURE WHITE BACKGROUND
     doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(203, 213, 225);
+    doc.setDrawColor(100, 116, 139);
     doc.setLineWidth(0.3);
     doc.roundedRect(176, boxY, 114, boxH, 1.5, 1.5, 'FD');
 
@@ -1368,13 +1370,13 @@ const renderRubricsElaborationPages = (doc, startPageNumber = 2, totalPages = 3)
         textColor: [255, 255, 255],
         fontSize: 6.8,
         fontStyle: 'bold',
-        lineWidth: 0.15,
-        lineColor: [148, 163, 184]
+        lineWidth: 0.35,
+        lineColor: [0, 0, 0]
       },
       bodyStyles: {
         fontSize: 5.8,
-        lineColor: [203, 213, 225],
-        lineWidth: 0.15,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.35,
         textColor: [15, 23, 42],
         cellPadding: { top: 1.2, bottom: 1.2, left: 1.2, right: 1.2 }
       },
